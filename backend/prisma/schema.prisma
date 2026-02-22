@@ -1,0 +1,203 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN     // Ministry
+  AGENCY_ADMIN
+  INSPECTOR
+}
+
+enum AgencyStatus {
+  ACTIVE
+  CLOSED
+  BANNED
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TradeType {
+  SALE
+  RENT
+  TRANSFER
+}
+
+enum Language {
+  EN
+  FA
+  PS
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  
+  @@index([token])
+  @@index([userId])
+}
+
+model User {
+  id           String    @id @default(uuid())
+  fullName     String
+  email        String    @unique
+  passwordHash String
+  role         UserRole
+  language     Language  @default(EN)
+  isActive     Boolean   @default(true)
+
+  agencyId     String?
+  agency       Agency?   @relation(fields: [agencyId], references: [id])
+
+  auditLogs    AuditLog[]
+  sessions     Session[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([role])
+  passwordResets PasswordReset[]
+}
+
+model Agency {
+  id             String   @id @default(uuid())
+  name           String
+  licenseNumber  String   @unique
+  address        String
+  region         String
+  status         AgencyStatus @default(ACTIVE)
+
+  users          User[]
+  properties     Property[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  tradeTransactions TradeTransaction[]
+}
+
+model Property {
+  id            String   @id @default(uuid())
+  title         String
+  address       String
+  region        String
+  cadastralNo   String?  @unique
+
+  agencyId      String
+  agency        Agency   @relation(fields: [agencyId], references: [id])
+
+  ownerships    PropertyOwnership[]
+  trades        TradeTransaction[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([region])
+}
+
+model PropertyOwnership {
+  id          String   @id @default(uuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+
+  ownerName   String
+  ownerIdNo   String?
+  fromDate    DateTime
+  toDate      DateTime?
+
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId])
+}
+
+model TradeTransaction {
+  id            String   @id @default(uuid())
+  propertyId    String
+  property      Property @relation(fields: [propertyId], references: [id])
+
+  agencyId      String
+  agency        Agency   @relation(fields: [agencyId], references: [id])
+
+  tradeType     TradeType
+  price         Float
+  buyerName     String
+  buyerIdNo     String?
+  sellerName    String
+  sellerIdNo    String?
+
+  status        VerificationStatus @default(PENDING)
+
+  verifications TradeVerification[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([tradeType])
+}
+
+model TradeVerification {
+  id          String   @id @default(uuid())
+  tradeId     String
+  trade       TradeTransaction @relation(fields: [tradeId], references: [id])
+
+  verifiedBy  String   // inspector or ministry user id
+  status      VerificationStatus
+  remarks     String?
+
+  createdAt   DateTime @default(now())
+
+  @@index([status])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  action    String   // e.g. CREATE_TRADE, VERIFY_AGENCY
+  entity    String   // e.g. Property, TradeTransaction
+  entityId  String
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([entity])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  refreshToken String @unique
+  expiresAt    DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
