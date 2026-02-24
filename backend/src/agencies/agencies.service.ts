@@ -6,6 +6,7 @@ import {
 import { CreateAgencyDto } from './dto/create-agency.dto';
 import { UpdateAgencyDto } from './dto/update-agency.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AgencyStatus } from '@prisma/client';
 
 @Injectable()
 export class AgenciesService {
@@ -92,6 +93,26 @@ export class AgenciesService {
 
     return {
       message: 'Agency deleted successfully',
+    };
+  }
+
+  async updateStatus(id: string, status: AgencyStatus) {
+    const agency = await this.prisma.agency.findUnique({
+      where: { id },
+    });
+
+    if (!agency) {
+      throw new NotFoundException('Agency not found');
+    }
+
+    const updatedAgency = await this.prisma.agency.update({
+      where: { id },
+      data: { status },
+    });
+
+    return {
+      message: `Agency status updated to ${status}`,
+      agency: updatedAgency,
     };
   }
 }
