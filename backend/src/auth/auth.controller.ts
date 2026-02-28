@@ -10,8 +10,8 @@ import {
 } from './dto';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { RolesGuard } from './guards/roles.guard';
-import { Roles } from './decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { Roles } from 'src/common/decorators';
 
 @Controller('auth')
 export class AuthController {

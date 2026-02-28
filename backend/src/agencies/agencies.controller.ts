@@ -15,7 +15,7 @@ import { UpdateAgencyDto } from './dto/update-agency.dto';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { AgencyStatus, UserRole } from '@prisma/client';
-import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from 'src/common/decorators';
 
 @Controller('agencies')
 @UseGuards(JwtAuthGuard, RolesGuard)
