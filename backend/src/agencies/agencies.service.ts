@@ -7,10 +7,15 @@ import { CreateAgencyDto } from './dto/create-agency.dto';
 import { UpdateAgencyDto } from './dto/update-agency.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AgencyStatus } from '@prisma/client';
+import { AuditAction, AuditService } from 'src/common/services/audit.service';
+import { CurrentUser } from 'src/common/types';
 
 @Injectable()
 export class AgenciesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService,
+  ) {}
   async createAgency(createAgencyDto: CreateAgencyDto) {
     const existingAgency = await this.prisma.agency.findUnique({
       where: { licenseNumber: createAgencyDto.licenseNumber },
@@ -96,7 +101,11 @@ export class AgenciesService {
     };
   }
 
-  async updateStatus(id: string, status: AgencyStatus) {
+  async updateStatus(
+    id: string,
+    status: AgencyStatus,
+    currentUser: CurrentUser,
+  ) {
     const agency = await this.prisma.agency.findUnique({
       where: { id },
     });
@@ -108,6 +117,24 @@ export class AgenciesService {
     const updatedAgency = await this.prisma.agency.update({
       where: { id },
       data: { status },
+    });
+
+    // Determine which action to log
+    let action: AuditAction;
+    if (status === AgencyStatus.BANNED) action = AuditAction.BAN_AGENCY;
+    else if (status === AgencyStatus.CLOSED) action = AuditAction.CLOSE_AGENCY;
+    else action = AuditAction.ACTIVATE_AGENCY;
+
+    // Log the action
+    await this.auditService.log({
+      userId: currentUser.id,
+      action,
+      entity: 'Agency',
+      entityId: id,
+      details: {
+        oldStatus: agency.status,
+        newStatus: status,
+      },
     });
 
     return {

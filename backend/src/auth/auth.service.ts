@@ -19,13 +19,15 @@ import { JwtService } from '@nestjs/jwt';
 import { UserRole } from '@prisma/client';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { EmailService } from 'src/common/services/email.service';
+import { AuditAction, AuditService } from 'src/common/services/audit.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
-    private emailService: EmailService
+    private emailService: EmailService,
+    private auditService: AuditService,
   ) {}
   async createUser(dto: CreateUserDto) {
     const existingUser = await this.prisma.user.findUnique({
@@ -73,7 +75,7 @@ export class AuthService {
 
     return newUser;
   }
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -125,6 +127,15 @@ export class AuthService {
         refreshToken,
         expiresAt,
       },
+    });
+
+    await this.auditService.log({
+      userId: user.id,
+      action: AuditAction.LOGIN,
+      entity: 'User',
+      entityId: user.id,
+      ipAddress,
+      userAgent,
     });
 
     return {

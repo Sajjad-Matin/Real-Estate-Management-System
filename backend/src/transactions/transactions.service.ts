@@ -12,12 +12,19 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CurrentUser } from 'src/common/types';
 import { UserRole, VerificationStatus } from '@prisma/client';
+import { AuditAction, AuditService } from 'src/common/services/audit.service';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService,
+  ) {}
 
-  async create(createTransactionDto: CreateTransactionDto, currentUser: CurrentUser) {
+  async create(
+    createTransactionDto: CreateTransactionDto,
+    currentUser: CurrentUser,
+  ) {
     // If AGENCY_ADMIN, use their agency
     if (currentUser.role === UserRole.AGENCY_ADMIN) {
       if (!currentUser.agencyId) {
@@ -41,7 +48,7 @@ export class TransactionsService {
       property.agencyId !== currentUser.agencyId
     ) {
       throw new ForbiddenException(
-        'You can only create transactions for your agency\'s properties',
+        "You can only create transactions for your agency's properties",
       );
     }
 
@@ -78,6 +85,18 @@ export class TransactionsService {
             licenseNumber: true,
           },
         },
+      },
+    });
+
+    await this.auditService.log({
+      userId: currentUser.id,
+      action: AuditAction.CREATE_TRANSACTION,
+      entity: 'TradeTransaction',
+      entityId: transaction.id,
+      details: {
+        propertyId: transaction.propertyId,
+        tradeType: transaction.tradeType,
+        price: transaction.price,
       },
     });
 
@@ -235,9 +254,7 @@ export class TransactionsService {
 
     // Only SUPER_ADMIN can delete transactions
     if (currentUser.role !== UserRole.SUPER_ADMIN) {
-      throw new ForbiddenException(
-        'Only SUPER_ADMIN can delete transactions',
-      );
+      throw new ForbiddenException('Only SUPER_ADMIN can delete transactions');
     }
 
     await this.prisma.tradeTransaction.delete({
@@ -298,6 +315,21 @@ export class TransactionsService {
         property: true,
         agency: true,
         verifications: true,
+      },
+    });
+
+    await this.auditService.log({
+      userId: currentUser.id,
+      action:
+        verifyDto.status === VerificationStatus.APPROVED
+          ? AuditAction.APPROVE_TRANSACTION
+          : AuditAction.REJECT_TRANSACTION,
+      entity: 'TradeTransaction',
+      entityId: id,
+      details: {
+        status: verifyDto.status,
+        remarks: verifyDto.remarks,
+        verifierRole: currentUser.role,
       },
     });
 

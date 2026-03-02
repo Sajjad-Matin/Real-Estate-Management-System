@@ -15,7 +15,8 @@ import { UpdateAgencyDto } from './dto/update-agency.dto';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { AgencyStatus, UserRole } from '@prisma/client';
-import { Roles } from 'src/common/decorators';
+import { CurrentUser, Roles } from 'src/common/decorators';
+import type { CurrentUser as CurrentUserType } from 'src/common/types';
 
 @Controller('agencies')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -49,17 +50,38 @@ export class AgenciesController {
   }
 
   @Patch(':id/ban')
-  async ban(@Param('id') id: string) {
-    return this.agenciesService.updateStatus(id, AgencyStatus.BANNED);
+  async ban(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: CurrentUserType,
+  ) {
+    return this.agenciesService.updateStatus(
+      id,
+      AgencyStatus.BANNED,
+      currentUser,
+    );
   }
 
   @Patch(':id/close')
-  async close(@Param('id') id: string) {
-    return this.agenciesService.updateStatus(id, AgencyStatus.CLOSED);
+  async close(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: CurrentUserType,
+  ) {
+    return this.agenciesService.updateStatus(
+      id,
+      AgencyStatus.CLOSED,
+      currentUser,
+    );
   }
 
   @Patch(':id/activate')
-  async activate(@Param('id') id: string) {
-    return this.agenciesService.updateStatus(id, AgencyStatus.ACTIVE);
+  async activate(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: CurrentUserType,
+  ) {
+    return this.agenciesService.updateStatus(
+      id,
+      AgencyStatus.ACTIVE,
+      currentUser,
+    );
   }
 }

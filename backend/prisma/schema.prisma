@@ -175,11 +175,13 @@ model TradeVerification {
 model AuditLog {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   action    String   // e.g. CREATE_TRADE, VERIFY_AGENCY
   entity    String   // e.g. Property, TradeTransaction
   entityId  String
+  
+  details   Json?    // ✅ Store additional context (old values, new values, etc.)
 
   ipAddress String?
   userAgent String?
@@ -187,6 +189,9 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@index([entity])
+  @@index([userId])     // ✅ Add for faster user queries
+  @@index([action])     // ✅ Add for faster action queries
+  @@index([createdAt])  // ✅ Add for faster date queries
 }
 
 model Session {
