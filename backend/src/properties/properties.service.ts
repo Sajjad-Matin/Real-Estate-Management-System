@@ -4,13 +4,22 @@ import {
   ConflictException,
   ForbiddenException,
 } from '@nestjs/common';
-import { CreatePropertyDto, UpdatePropertyDto } from './dto';
+import {
+  CreatePropertyDto,
+  SearchPropertiesDto,
+  UpdatePropertyDto,
+} from './dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserRole } from '@prisma/client';
+import { PaginationService } from 'src/common/services/pagination.service';
+import { CurrentUser } from 'src/common/types';
 
 @Injectable()
 export class PropertiesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private paginationService: PaginationService,
+  ) {}
 
   async create(createPropertyDto: CreatePropertyDto, currentUser: any) {
     // If AGENCY_ADMIN, use their agency (override whatever they send)
@@ -65,14 +74,42 @@ export class PropertiesService {
     };
   }
 
-  async findAll(currentUser: any) {
-    // If AGENCY_ADMIN, only show their agency's properties
-    const where =
-      currentUser.role === UserRole.AGENCY_ADMIN
-        ? { agencyId: currentUser.agencyId }
-        : {}; // SUPER_ADMIN and INSPECTOR see all
+  async findAll(currentUser: CurrentUser, searchDto: SearchPropertiesDto) {
+    const { page, limit, search, sortBy, sortOrder, region, agencyId } =
+      searchDto;
 
-    return this.prisma.property.findMany({
+    // Build where clause
+    const where: any = {};
+
+    // Role-based filtering
+    if (currentUser.role === UserRole.AGENCY_ADMIN) {
+      where.agencyId = currentUser.agencyId;
+    }
+
+    if (region) {
+      where.region = {
+        contains: region,
+        mode: 'insensitive',
+      };
+    }
+
+    if (agencyId) {
+      where.agencyId = agencyId;
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { address: { contains: search, mode: 'insensitive' } },
+        { cadastralNo: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Get total count
+    const total = await this.prisma.property.count({ where });
+
+    // Get paginated data
+    const properties = await this.prisma.property.findMany({
       where,
       include: {
         agency: {
@@ -90,9 +127,18 @@ export class PropertiesService {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        [sortBy || 'createdAt']: sortOrder || 'desc',
       },
+      skip: this.paginationService.getSkip(page || 1, limit || 10),
+      take: limit || 10,
     });
+
+    return this.paginationService.paginate(
+      properties,
+      total,
+      page || 1,
+      limit || 10,
+    );
   }
 
   async findOne(id: string, currentUser: any) {
@@ -212,9 +258,7 @@ export class PropertiesService {
 
     // Only SUPER_ADMIN can delete properties
     if (currentUser.role !== UserRole.SUPER_ADMIN) {
-      throw new ForbiddenException(
-        'Only SUPER_ADMIN can delete properties',
-      );
+      throw new ForbiddenException('Only SUPER_ADMIN can delete properties');
     }
 
     // Prevent deletion if property has trades

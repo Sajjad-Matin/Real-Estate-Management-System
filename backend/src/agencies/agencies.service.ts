@@ -3,18 +3,19 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateAgencyDto } from './dto/create-agency.dto';
-import { UpdateAgencyDto } from './dto/update-agency.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AgencyStatus } from '@prisma/client';
 import { AuditAction, AuditService } from 'src/common/services/audit.service';
 import { CurrentUser } from 'src/common/types';
+import { CreateAgencyDto, SearchAgenciesDto, UpdateAgencyDto } from './dto';
+import { PaginationService } from 'src/common/services/pagination.service';
 
 @Injectable()
 export class AgenciesService {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
+    private paginationService: PaginationService,
   ) {}
   async createAgency(createAgencyDto: CreateAgencyDto) {
     const existingAgency = await this.prisma.agency.findUnique({
@@ -36,8 +37,59 @@ export class AgenciesService {
     return newAgency;
   }
 
-  async findAll() {
-    return await this.prisma.agency.findMany();
+  async findAll(searchDto: SearchAgenciesDto) {
+    const { page, limit, search, sortBy, sortOrder, status, region } = searchDto;
+
+    // Build where clause
+    const where: any = {};
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (region) {
+      where.region = {
+        contains: region,
+        mode: 'insensitive',
+      };
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { licenseNumber: { contains: search, mode: 'insensitive' } },
+        { address: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Get total count
+    const total = await this.prisma.agency.count({ where });
+
+    // Get paginated data
+    const agencies = await this.prisma.agency.findMany({
+      where,
+      include: {
+        _count: {
+          select: {
+            users: true,
+            properties: true,
+            tradeTransactions: true,
+          },
+        },
+      },
+      orderBy: {
+        [sortBy || 'createdAt']: sortOrder || 'desc',
+      },
+      skip: this.paginationService.getSkip(page || 1, limit || 10),
+      take: limit || 10,
+    });
+
+    return this.paginationService.paginate(
+      agencies,
+      total,
+      page || 1,
+      limit || 10,
+    );
   }
 
   async findOne(id: string) {

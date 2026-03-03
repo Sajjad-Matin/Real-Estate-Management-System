@@ -12,6 +12,7 @@ import {
 import { TransactionsService } from './transactions.service';
 import {
   CreateTransactionDto,
+  SearchTransactionsDto,
   UpdateTransactionDto,
   VerifyTransactionDto,
 } from './dto';
@@ -40,15 +41,10 @@ export class TransactionsController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.AGENCY_ADMIN, UserRole.INSPECTOR)
   async findAll(
     @CurrentUser() currentUser: CurrentUserType,
-    @Query('status') status?: VerificationStatus,
-    @Query('propertyId') propertyId?: string,
+    @Query() searchDto: SearchTransactionsDto,
   ) {
-    if (propertyId) {
-      return this.transactionsService.findByProperty(propertyId);
-    }
-    return this.transactionsService.findAll(currentUser, status);
+    return this.transactionsService.findAll(currentUser, searchDto);
   }
-
   @Get('pending')
   @Roles(UserRole.SUPER_ADMIN, UserRole.INSPECTOR)
   async findPending() {

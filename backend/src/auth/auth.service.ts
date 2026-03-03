@@ -75,6 +75,40 @@ export class AuthService {
 
     return newUser;
   }
+
+  async getMe(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        role: true,
+        language: true,
+        isActive: true,
+        agencyId: true,
+        agency: {
+          select: {
+            id: true,
+            name: true,
+            licenseNumber: true,
+            address: true,
+            region: true,
+            status: true,
+          },
+        },
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },

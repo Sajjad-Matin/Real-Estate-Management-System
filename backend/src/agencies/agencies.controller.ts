@@ -8,15 +8,15 @@ import {
   Delete,
   Put,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { AgenciesService } from './agencies.service';
-import { CreateAgencyDto } from './dto/create-agency.dto';
-import { UpdateAgencyDto } from './dto/update-agency.dto';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { AgencyStatus, UserRole } from '@prisma/client';
 import { CurrentUser, Roles } from 'src/common/decorators';
 import type { CurrentUser as CurrentUserType } from 'src/common/types';
+import { CreateAgencyDto, SearchAgenciesDto, UpdateAgencyDto } from './dto';
 
 @Controller('agencies')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -30,8 +30,8 @@ export class AgenciesController {
   }
 
   @Get()
-  findAll() {
-    return this.agenciesService.findAll();
+  async findAll(@Query() searchDto: SearchAgenciesDto) {
+    return this.agenciesService.findAll(searchDto);
   }
 
   @Get(':id')

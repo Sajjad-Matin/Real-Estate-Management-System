@@ -11,7 +11,8 @@ import {
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { UserRole } from '@prisma/client';
-import { Roles } from 'src/common/decorators';
+import { CurrentUser, Roles } from 'src/common/decorators';
+import type { CurrentUser as CurrentUserType } from 'src/common/types';
 
 @Controller('auth')
 export class AuthController {
@@ -31,13 +32,12 @@ export class AuthController {
     return this.authService.login(dto, ipAddress, userAgent);
   }
 
-  @Get('me')
+ @Get('me')
   @UseGuards(JwtAuthGuard)
-  getMe(@Req() req) {
-    const { passwordHash, ...user } = req.user;
+  async getMe(@CurrentUser() currentUser: CurrentUserType) {
+    const user = await this.authService.getMe(currentUser.id);
     return { success: true, user };
   }
-
   @Post('refresh')
   refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refreshToken(dto);

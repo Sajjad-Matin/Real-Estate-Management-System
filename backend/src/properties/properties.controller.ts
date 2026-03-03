@@ -10,11 +10,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { PropertiesService } from './properties.service';
-import { CreatePropertyDto, UpdatePropertyDto } from './dto';
+import { CreatePropertyDto, SearchPropertiesDto, UpdatePropertyDto } from './dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { UserRole } from '@prisma/client';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import type { CurrentUser as CurrentUserType } from 'src/common/types';
 import { Roles } from 'src/common/decorators';
 
 @Controller('properties')
@@ -34,19 +35,11 @@ export class PropertiesController {
   @Get()
   @Roles(UserRole.SUPER_ADMIN, UserRole.AGENCY_ADMIN, UserRole.INSPECTOR)
   async findAll(
-    @CurrentUser() currentUser: any,
-    @Query('agencyId') agencyId?: string,
-    @Query('region') region?: string,
+    @CurrentUser() currentUser: CurrentUserType,
+    @Query() searchDto: SearchPropertiesDto,
   ) {
-    if (agencyId) {
-      return this.propertiesService.findByAgency(agencyId);
-    }
-    if (region) {
-      return this.propertiesService.findByRegion(region);
-    }
-    return this.propertiesService.findAll(currentUser);
+    return this.propertiesService.findAll(currentUser, searchDto);
   }
-
   @Get(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.AGENCY_ADMIN, UserRole.INSPECTOR)
   async findOne(@Param('id') id: string, @CurrentUser() currentUser: any) {

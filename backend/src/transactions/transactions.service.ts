@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import {
   CreateTransactionDto,
+  SearchTransactionsDto,
   UpdateTransactionDto,
   VerifyTransactionDto,
 } from './dto';
@@ -13,12 +14,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CurrentUser } from 'src/common/types';
 import { UserRole, VerificationStatus } from '@prisma/client';
 import { AuditAction, AuditService } from 'src/common/services/audit.service';
+import { PaginationService } from 'src/common/services/pagination.service';
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
+    private paginationService: PaginationService,
   ) {}
 
   async create(
@@ -106,26 +109,59 @@ export class TransactionsService {
     };
   }
 
-  async findAll(currentUser: CurrentUser, status?: VerificationStatus) {
-    // Build where clause based on role
+  async findAll(currentUser: CurrentUser, searchDto: SearchTransactionsDto) {
+    const {
+      page,
+      limit,
+      search,
+      sortBy,
+      sortOrder,
+      status,
+      tradeType,
+      propertyId,
+      agencyId,
+    } = searchDto;
+
+    // Build where clause
     const where: any = {};
 
-    // Filter by status if provided
+    // Role-based filtering
+    if (currentUser.role === UserRole.AGENCY_ADMIN) {
+      where.agencyId = currentUser.agencyId;
+    } else if (currentUser.role === UserRole.INSPECTOR) {
+      where.status = VerificationStatus.PENDING;
+    }
+
     if (status) {
       where.status = status;
     }
 
-    // AGENCY_ADMIN only sees their agency's transactions
-    if (currentUser.role === UserRole.AGENCY_ADMIN) {
-      where.agencyId = currentUser.agencyId;
+    if (tradeType) {
+      where.tradeType = tradeType;
     }
 
-    // INSPECTOR sees only PENDING transactions
-    if (currentUser.role === UserRole.INSPECTOR) {
-      where.status = VerificationStatus.PENDING;
+    if (propertyId) {
+      where.propertyId = propertyId;
     }
 
-    return this.prisma.tradeTransaction.findMany({
+    if (agencyId) {
+      where.agencyId = agencyId;
+    }
+
+    if (search) {
+      where.OR = [
+        { buyerName: { contains: search, mode: 'insensitive' } },
+        { sellerName: { contains: search, mode: 'insensitive' } },
+        { buyerIdNo: { contains: search, mode: 'insensitive' } },
+        { sellerIdNo: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Get total count
+    const total = await this.prisma.tradeTransaction.count({ where });
+
+    // Get paginated data
+    const transactions = await this.prisma.tradeTransaction.findMany({
       where,
       include: {
         property: {
@@ -158,9 +194,18 @@ export class TransactionsService {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        [sortBy || 'createdAt']: sortOrder || 'desc',
       },
+      skip: this.paginationService.getSkip(page || 1, limit || 10),
+      take: limit || 10,
     });
+
+    return this.paginationService.paginate(
+      transactions,
+      total,
+      page || 1,
+      limit || 10,
+    );
   }
 
   async findOne(id: string, currentUser: CurrentUser) {
