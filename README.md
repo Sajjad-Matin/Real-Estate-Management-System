@@ -1,4 +1,4 @@
-# 🏢 Real Estate Management System (REMS)
+# 🏢 Real estate Management System (REMS)
 
 > A government-grade platform that digitizes the management of state-owned real estate across the country — replacing paper-based records with a centralized, secure, and auditable system.
 
