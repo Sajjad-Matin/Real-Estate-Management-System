@@ -1,70 +1,69 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --bg-primary: 255 255 255;
+    --bg-secondary: 249 250 251;
+    --bg-tertiary: 243 244 246;
+    
+    --text-primary: 17 24 39;
+    --text-secondary: 107 114 128;
+    --text-tertiary: 156 163 175;
+    
+    --border-primary: 229 231 235;
+    --border-secondary: 209 213 219;
   }
-  a:hover {
-    color: #747bff;
+
+  .dark {
+    --bg-primary: 30 41 59;
+    --bg-secondary: 15 23 42;
+    --bg-tertiary: 51 65 85;
+    
+    --text-primary: 248 250 252;
+    --text-secondary: 203 213 225;
+    --text-tertiary: 148 163 184;
+    
+    --border-primary: 51 65 85;
+    --border-secondary: 71 85 105;
   }
-  button {
-    background-color: #f9f9f9;
+
+  body {
+    @apply antialiased;
+    background-color: rgb(var(--bg-secondary));
+    color: rgb(var(--text-primary));
   }
+}
+
+.bg-base {
+  background-color: rgb(var(--bg-primary));
+}
+
+.bg-elevated {
+  background-color: rgb(var(--bg-secondary));
+}
+
+.bg-tertiary {
+  background-color: rgb(var(--bg-tertiary));
+}
+
+.text-primary {
+  color: rgb(var(--text-primary));
+}
+
+.text-secondary {
+  color: rgb(var(--text-secondary));
+}
+
+.text-tertiary {
+  color: rgb(var(--text-tertiary));
+}
+
+.border-primary {
+  border-color: rgb(var(--border-primary));
+}
+
+.border-secondary {
+  border-color: rgb(var(--border-secondary));
 }
