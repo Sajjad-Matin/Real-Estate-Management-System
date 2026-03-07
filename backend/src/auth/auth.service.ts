@@ -134,6 +134,7 @@ export class AuthService {
         sub: user.id,
         email: user.email,
         role: user.role,
+        agencyId: user.agencyId, // ✅ Add this
       },
       {
         expiresIn: '15m',
@@ -174,16 +175,18 @@ export class AuthService {
 
     return {
       accessToken: accessToken,
+      refreshToken: refreshToken, // ✅ Add this
       user: {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
         role: user.role,
         language: user.language,
+        agencyId: user.agencyId, // ✅ Add this
       },
     };
   }
-
+  
   async refreshToken(dto: RefreshTokenDto) {
     // Find session with this refresh token
     const session = await this.prisma.session.findUnique({

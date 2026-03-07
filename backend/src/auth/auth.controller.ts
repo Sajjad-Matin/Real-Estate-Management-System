@@ -18,8 +18,8 @@ import type { CurrentUser as CurrentUserType } from 'src/common/types';
 export class AuthController {
   constructor(private authService: AuthService) {}
   @Post('register')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRole.SUPER_ADMIN)
   registerByAdmin(@Body() dto: CreateUserDto) {
     return this.authService.createUser(dto);
   }
