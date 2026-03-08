@@ -13,46 +13,43 @@ import { RolesGuard } from './guards/roles.guard';
 import { UserRole } from '@prisma/client';
 import { CurrentUser, Roles } from 'src/common/decorators';
 import type { CurrentUser as CurrentUserType } from 'src/common/types';
+import type { Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
-  @Post('register')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.SUPER_ADMIN)
-  registerByAdmin(@Body() dto: CreateUserDto) {
-    return this.authService.createUser(dto);
-  }
 
   @Post('login')
-  login(@Body() dto: LoginDto, @Req() req) {
-    const ipAddress = req.ip || req.connection.remoteAddress;
+  async login(@Body() loginDto: LoginDto, @Req() req: Request) {
+    const ipAddress = req.ip || (req as any).connection?.remoteAddress;
     const userAgent = req.headers['user-agent'];
-
-    return this.authService.login(dto, ipAddress, userAgent);
+    return this.authService.login(loginDto, ipAddress, userAgent);
   }
 
- @Get('me')
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@Body() body: { refreshToken: string }, @CurrentUser() user: any, @Req() req: Request) {
+    const ipAddress = req.ip || (req as any).connection?.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    return this.authService.logout(user.id, body.refreshToken, ipAddress, userAgent);
+  }
+
+  @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@CurrentUser() currentUser: CurrentUserType) {
     const user = await this.authService.getMe(currentUser.id);
     return { success: true, user };
   }
+
   @Post('refresh')
   refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refreshToken(dto);
   }
 
-  @Post('logout')
-  @UseGuards(JwtAuthGuard)
-  logout(@Req() req, @Body() dto: RefreshTokenDto) {
-    return this.authService.logout(req.user.id, dto.refreshToken);
-  }
-
   @Post('password')
   @UseGuards(JwtAuthGuard)
-  changePassword(@Req() req, @Body() dto: ChangePasswordDto) {
-    return this.authService.changePassword(req.user.id, dto);
+  changePassword(@CurrentUser() user: any, @Body() dto: ChangePasswordDto) {
+    return this.authService.changePassword(user.id, dto);
   }
 
   @Post('forgot-password')

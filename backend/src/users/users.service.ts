@@ -5,14 +5,123 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserRole } from '@prisma/client';
-import { UpdateUserDto } from './dto';
+import { CreateUserDto, UpdateUserDto } from './dto';
+import * as bcrypt from 'bcrypt';
+import { PaginationService } from 'src/common/services/pagination.service';
+import { AuditLogService } from 'src/audit-log/audit-log.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private paginationService: PaginationService,
+    private auditLogService: AuditLogService,
+  ) {}
 
-  async findAll() {
+  async createUser(dto: CreateUserDto, currentUserId?: string) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+    if (existingUser) {
+      throw new ConflictException('Email Already Exists!');
+    }
+
+    if (dto.role === UserRole.AGENCY_ADMIN && dto.agencyId) {
+      const agency = await this.prisma.agency.findUnique({
+        where: { id: dto.agencyId },
+      });
+      if (!agency) {
+        throw new NotFoundException('Agency not found');
+      }
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+    // Create user
+    const newUser = await this.prisma.user.create({
+      data: {
+        fullName: dto.fullName,
+        email: dto.email,
+        passwordHash: hashedPassword,
+        role: dto.role,
+        language: dto.language,
+        isActive: dto.isActive ?? true,
+        agencyId: dto.agencyId,
+      },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        role: true,
+        language: true,
+        isActive: true,
+        agencyId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    // ✅ Log audit after user is created
+    if (currentUserId) {
+      await this.auditLogService.logCreate(currentUserId, 'User', newUser.id, {
+        fullName: newUser.fullName,
+        email: newUser.email,
+        role: newUser.role,
+      });
+    }
+
+    return {
+      message: 'User created successfully',
+      user: newUser,
+    };
+  }
+
+  async findAll(page: number = 1, limit: number = 10, search?: string) {
+    const where: any = {};
+
+    // Search by name or email
+    if (search) {
+      where.OR = [
+        { fullName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip: this.paginationService.getSkip(page, limit),
+        take: limit,
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          role: true,
+          language: true,
+          isActive: true,
+          agencyId: true,
+          agency: {
+            select: {
+              id: true,
+              name: true,
+              licenseNumber: true,
+            },
+          },
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return this.paginationService.paginate(users, total, page, limit);
+  }
+
+  async findByRole(role: UserRole) {
     return this.prisma.user.findMany({
+      where: { role },
       select: {
         id: true,
         fullName: true,
@@ -31,8 +140,22 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
       },
-      orderBy: {
-        createdAt: 'desc',
+    });
+  }
+
+  async findByAgency(agencyId: string) {
+    return this.prisma.user.findMany({
+      where: { agencyId },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        role: true,
+        language: true,
+        isActive: true,
+        agencyId: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }
@@ -74,7 +197,7 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto, currentUserId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -130,6 +253,11 @@ export class UsersService {
       },
     });
 
+    // ✅ Log audit
+    await this.auditLogService.logUpdate(currentUserId, 'User', id, {
+      changes: updateUserDto,
+    });
+
     return {
       message: 'User updated successfully',
       user: updatedUser,
@@ -153,12 +281,15 @@ export class UsersService {
       where: { id },
     });
 
-    return {
-      message: 'User deleted successfully',
-    };
+    // ✅ Log audit
+    await this.auditLogService.logDelete(currentUserId, 'User', id, {
+      deletedUser: user.fullName,
+    });
+
+    return { message: 'User deleted successfully' };
   }
 
-  async deactivate(id: string) {
+  async deactivate(id: string, currentUserId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -177,13 +308,22 @@ export class UsersService {
       where: { userId: id },
     });
 
+    // ✅ Log audit
+    await this.auditLogService.log({
+      userId: currentUserId,
+      action: 'DEACTIVATE_USER',
+      entity: 'User',
+      entityId: id,
+      details: { fullName: updatedUser.fullName },
+    });
+
     return {
       message: 'User deactivated successfully',
       user: updatedUser,
     };
   }
 
-  async activate(id: string) {
+  async activate(id: string, currentUserId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -197,52 +337,18 @@ export class UsersService {
       data: { isActive: true },
     });
 
+    // ✅ Log audit
+    await this.auditLogService.log({
+      userId: currentUserId,
+      action: 'ACTIVATE_USER',
+      entity: 'User',
+      entityId: id,
+      details: { fullName: updatedUser.fullName },
+    });
+
     return {
       message: 'User activated successfully',
       user: updatedUser,
     };
-  }
-
-  // Get users by agency
-  async findByAgency(agencyId: string) {
-    return this.prisma.user.findMany({
-      where: { agencyId },
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        role: true,
-        language: true,
-        isActive: true,
-        createdAt: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-  }
-
-  // Get users by role
-  async findByRole(role: UserRole) {
-    return this.prisma.user.findMany({
-      where: { role },
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        language: true,
-        isActive: true,
-        agencyId: true,
-        agency: {
-          select: {
-            name: true,
-          },
-        },
-        createdAt: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
   }
 }

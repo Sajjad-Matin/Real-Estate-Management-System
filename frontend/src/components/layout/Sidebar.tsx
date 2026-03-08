@@ -63,8 +63,8 @@ const Sidebar = () => {
       roles: [UserRole.INSPECTOR],
     },
     {
-      name: 'Inspectors',
-      path: '/inspectors',
+      name: 'Users',
+      path: '/users',
       icon: <Users className="w-5 h-5" />,
       roles: [UserRole.SUPER_ADMIN],
     },
@@ -83,8 +83,8 @@ const Sidebar = () => {
   ];
 
   const filteredNavItems = navItems.filter((item) =>
-  user?.role ? item.roles.includes(user.role) : false
-);
+    user?.role ? item.roles.includes(user.role) : false
+  );
 
   const handleLogout = async () => {
     await logout();

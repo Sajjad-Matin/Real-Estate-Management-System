@@ -117,3 +117,20 @@ export interface PaginatedResponse<T> {
     hasPreviousPage: boolean;
   };
 }
+
+export interface AuditLog {
+  id: string;
+  userId: string;
+  user?: {
+    id: string;
+    fullName: string;
+    email: string;
+  };
+  action: string;
+  entity: string;
+  entityId: string;
+  details?: any;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: string;
+}

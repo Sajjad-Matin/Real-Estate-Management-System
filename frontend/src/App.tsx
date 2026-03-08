@@ -15,6 +15,10 @@ import TransactionForm from "./pages/transactions/TransactionsForm";
 import TransactionsList from "./pages/transactions/TransactionsList";
 import History from "./pages/inspector/History";
 import VerificationQueue from "./pages/inspector/VerificationQueue";
+import UserDetails from "./pages/users/UserDetails";
+import UserForm from "./pages/users/UserForm";
+import UsersList from "./pages/users/UsersList";
+import AuditLogList from "./pages/auditLog/AuditLogList";
 
 function App() {
   return (
@@ -176,6 +180,46 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.INSPECTOR]}>
               <History />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+              <UsersList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/users/create"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+              <UserForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/users/:id"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+              <UserDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/users/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+              <UserForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/audit-log"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+              <AuditLogList />
             </ProtectedRoute>
           }
         />

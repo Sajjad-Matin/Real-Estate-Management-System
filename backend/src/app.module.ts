@@ -6,8 +6,9 @@ import { CommonModule } from './common/common.module';
 import { UsersModule } from './users/users.module';
 import { PropertiesModule } from './properties/properties.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { AuditLogModule } from './audit-log/audit-log.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, AgenciesModule, CommonModule, UsersModule, PropertiesModule, TransactionsModule],
+  imports: [AuthModule, PrismaModule, AgenciesModule, CommonModule, UsersModule, PropertiesModule, TransactionsModule, AuditLogModule],
 })
 export class AppModule {}

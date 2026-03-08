@@ -1,4 +1,4 @@
-export * from './signup.dto'
+export * from '../../users/dto/signup.dto'
 export * from './login.dto'
 export * from './refresh-token.dto'
 export * from './change-password.dto'
