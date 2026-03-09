@@ -12,7 +12,7 @@ export interface LogEntry {
 }
 
 @Injectable()
-export class AuditLogService {
+export class AuditLoggerService {
   constructor(private prisma: PrismaService) {}
 
   async log(entry: LogEntry): Promise<void> {

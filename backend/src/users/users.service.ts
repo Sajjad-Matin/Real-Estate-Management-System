@@ -8,14 +8,14 @@ import { UserRole } from '@prisma/client';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import * as bcrypt from 'bcrypt';
 import { PaginationService } from 'src/common/services/pagination.service';
-import { AuditLogService } from 'src/audit-log/audit-log.service';
+import { AuditLoggerService } from 'src/common/services/audit-logger.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private paginationService: PaginationService,
-    private auditLogService: AuditLogService,
+    private auditLogService: AuditLoggerService,
   ) {}
 
   async createUser(dto: CreateUserDto, currentUserId?: string) {

@@ -20,7 +20,7 @@ import { UserRole } from '@prisma/client';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { EmailService } from 'src/common/services/email.service';
 import { AuditAction, AuditService } from 'src/common/services/audit.service';
-import { AuditLogService } from 'src/audit-log/audit-log.service';
+import { AuditLoggerService } from 'src/common/services/audit-logger.service';
 
 @Injectable()
 export class AuthService {
@@ -29,7 +29,7 @@ export class AuthService {
     private jwt: JwtService,
     private emailService: EmailService,
     private auditService: AuditService,
-    private auditLogService: AuditLogService,
+    private auditLogService: AuditLoggerService,
   ) {}
 
   async getMe(userId: string) {
