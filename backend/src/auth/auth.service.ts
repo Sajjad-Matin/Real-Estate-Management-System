@@ -194,7 +194,12 @@ export class AuthService {
     };
   }
 
-  async logout(userId: string, refreshToken: string, ipAddress?: string, userAgent?: string) {
+  async logout(
+    userId: string,
+    refreshToken: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
     const session = await this.prisma.session.findFirst({
       where: {
         userId,
@@ -277,24 +282,15 @@ export class AuthService {
       },
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
-    if (process.env.NODE_ENV === 'production') {
+    if (true) {
       try {
         await this.emailService.sendPasswordReset(user.email, resetLink);
       } catch (error) {
         console.error('Failed to send password reset email:', error);
       }
-    } else {
-      console.log('='.repeat(60));
-      console.log('PASSWORD RESET REQUEST');
-      console.log('='.repeat(60));
-      console.log('Email:', user.email);
-      console.log('Reset Link:', resetLink);
-      console.log('Token:', resetToken);
-      console.log('Expires:', expiresAt);
-      console.log('='.repeat(60));
     }
 
     return {

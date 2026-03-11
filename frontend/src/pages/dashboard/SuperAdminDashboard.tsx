@@ -1,30 +1,65 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/layout/MainLayout';
 import Card from '../../components/ui/Card';
-import { Building2, Home, FileText, Users, Ban, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Building2, Home, Ban, Clock, Users, ArrowRight } from 'lucide-react';
+import LineChart from '../../components/charts/LineChart';
+import { statsApi } from '../../api/stats';
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
+  const [stats, setStats] = useState<any>(null);
+  const [trends, setTrends] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [statsData, trendsData] = await Promise.all([
+        statsApi.getSuperAdminStats(),
+        statsApi.getTransactionTrends(30),
+      ]);
+      setStats(statsData);
+      setTrends(trendsData);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <MainLayout title="Ministry Overview" showExport>
+        <div className="p-6">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-4 text-secondary">Loading dashboard...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
-    <MainLayout 
-      title="Ministry Overview" 
-      subtitle="Real-time administrative command and control center" 
-      showExport
-    >
-      <div className="p-6">
+    <MainLayout title="Ministry Overview" showExport>
+      <div className="p-6 space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <Card 
             className="cursor-pointer hover:shadow-lg transition-shadow"
             onClick={() => navigate('/properties')}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-secondary uppercase tracking-wider">
-                  Total Properties
+                <p className="text-sm font-medium text-secondary">Total Properties</p>
+                <p className="text-3xl font-bold text-primary mt-2">
+                  {stats?.totalProperties || 0}
                 </p>
-                <h3 className="text-3xl font-bold text-primary mt-2">8,432</h3>
               </div>
               <div className="p-3 bg-primary-100 dark:bg-primary-900 rounded-lg">
                 <Home className="w-6 h-6 text-primary-600" />
@@ -36,12 +71,12 @@ const SuperAdminDashboard = () => {
             className="cursor-pointer hover:shadow-lg transition-shadow"
             onClick={() => navigate('/agencies')}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-secondary uppercase tracking-wider">
-                  Active Agencies
+                <p className="text-sm font-medium text-secondary">Active Agencies</p>
+                <p className="text-3xl font-bold text-primary mt-2">
+                  {stats?.activeAgencies || 0}
                 </p>
-                <h3 className="text-3xl font-bold text-primary mt-2">1,284</h3>
               </div>
               <div className="p-3 bg-success-100 dark:bg-success-900 rounded-lg">
                 <Building2 className="w-6 h-6 text-success-600" />
@@ -49,13 +84,16 @@ const SuperAdminDashboard = () => {
             </div>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate('/agencies')}
+          >
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-secondary uppercase tracking-wider">
-                  Banned Agencies
+                <p className="text-sm font-medium text-secondary">Banned Agencies</p>
+                <p className="text-3xl font-bold text-primary mt-2">
+                  {stats?.bannedAgencies || 0}
                 </p>
-                <h3 className="text-3xl font-bold text-primary mt-2">12</h3>
               </div>
               <div className="p-3 bg-danger-100 dark:bg-danger-900 rounded-lg">
                 <Ban className="w-6 h-6 text-danger-600" />
@@ -65,14 +103,14 @@ const SuperAdminDashboard = () => {
 
           <Card 
             className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => navigate('/transactions')}
+            onClick={() => navigate('/transactions?status=PENDING')}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-secondary uppercase tracking-wider">
-                  Pending Verifications
+                <p className="text-sm font-medium text-secondary">Pending Verifications</p>
+                <p className="text-3xl font-bold text-primary mt-2">
+                  {stats?.pendingVerifications || 0}
                 </p>
-                <h3 className="text-3xl font-bold text-primary mt-2">42</h3>
               </div>
               <div className="p-3 bg-warning-100 dark:bg-warning-900 rounded-lg">
                 <Clock className="w-6 h-6 text-warning-600" />
@@ -80,13 +118,16 @@ const SuperAdminDashboard = () => {
             </div>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate('/users?role=INSPECTOR')}
+          >
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-secondary uppercase tracking-wider">
-                  Total Inspectors
+                <p className="text-sm font-medium text-secondary">Total Inspectors</p>
+                <p className="text-3xl font-bold text-primary mt-2">
+                  {stats?.totalInspectors || 0}
                 </p>
-                <h3 className="text-3xl font-bold text-primary mt-2">156</h3>
               </div>
               <div className="p-3 bg-info-100 dark:bg-info-900 rounded-lg">
                 <Users className="w-6 h-6 text-info-600" />
@@ -95,66 +136,44 @@ const SuperAdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Trade Transaction Trends */}
-        <Card className="mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-primary">Trade Transaction Trends</h3>
-              <p className="text-sm text-secondary mt-1">Monthly volume analysis across key sectors</p>
-            </div>
-            <div className="flex gap-4 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-primary-600 rounded-full"></div>
-                <span className="text-secondary">Sale</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-success-600 rounded-full"></div>
-                <span className="text-secondary">Rent</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-warning-600 rounded-full"></div>
-                <span className="text-secondary">Transfer</span>
-              </div>
-            </div>
-          </div>
-          <div className="h-64 flex items-center justify-center border border-primary rounded-lg bg-elevated">
-            <p className="text-secondary">Chart placeholder - Last 6 months</p>
+        {/* Transaction Trends Chart */}
+        <Card>
+          <div className="h-80">
+            <LineChart
+              data={trends}
+              xKey="date"
+              yKey="count"
+              title="Transaction Trends (Last 30 Days)"
+              color="#2563eb"
+            />
           </div>
         </Card>
 
-        {/* System Audit Log */}
+        {/* System Audit Log Preview */}
         <Card>
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-primary">System Audit Log</h3>
-            <button 
+            <h3 className="text-lg font-semibold text-primary">Recent System Activity</h3>
+            <button
               onClick={() => navigate('/audit-log')}
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-1"
             >
               View All
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-          <div className="space-y-4">
-            <div className="flex items-start gap-4 pb-4 border-b border-primary">
-              <div className="p-2 bg-primary-100 dark:bg-primary-900 rounded-lg">
-                <Users className="w-5 h-5 text-primary-600" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center justify-between py-3 border-b border-primary last:border-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-success-600 rounded-full"></div>
+                  <div>
+                    <p className="text-sm font-medium text-primary">System activity logged</p>
+                    <p className="text-xs text-secondary">Recent system event #{i}</p>
+                  </div>
+                </div>
+                <span className="text-xs text-tertiary">Just now</span>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-primary">Super Admin Login</p>
-                <p className="text-xs text-secondary mt-1">Credentials verified for Amin Rezai</p>
-              </div>
-              <span className="text-xs text-tertiary">08:45 AM - SYSTEM</span>
-            </div>
-
-            <div className="flex items-start gap-4 pb-4 border-b border-primary">
-              <div className="p-2 bg-warning-100 dark:bg-warning-900 rounded-lg">
-                <FileText className="w-5 h-5 text-warning-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-primary">Certificate Renewal</p>
-                <p className="text-xs text-secondary mt-1">Global Import Inc. updated credentials</p>
-              </div>
-              <span className="text-xs text-tertiary">09:12 AM - AGENCY</span>
-            </div>
+            ))}
           </div>
         </Card>
       </div>

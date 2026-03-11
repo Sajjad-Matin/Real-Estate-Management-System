@@ -19,6 +19,8 @@ import UserDetails from "./pages/users/UserDetails";
 import UserForm from "./pages/users/UserForm";
 import UsersList from "./pages/users/UsersList";
 import AuditLogList from "./pages/auditLog/AuditLogList";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 function App() {
   return (
@@ -223,6 +225,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </AuthProvider>
   );
