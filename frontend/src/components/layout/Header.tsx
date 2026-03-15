@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Bell, Moon, Sun, Download, Key } from 'lucide-react';
 import { useThemeStore } from '../../stores/themeStore';
 import Button from '../ui/Button';
+import LanguageSwitcher from '../common/LangaugeSwitcher';
 import ChangePasswordModal from '../../pages/auth/ChangePasswordModal';
 
 interface HeaderProps {
@@ -12,8 +13,8 @@ interface HeaderProps {
 }
 
 const Header = ({ title, subtitle, showExport, onExport }: HeaderProps) => {
-  const { toggleTheme } = useThemeStore();
-  const [isDark, setIsDark] = useState<boolean>(document.documentElement.classList.contains('dark'));
+  const toggleTheme = useThemeStore((s) => s.toggleTheme);
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
   const [showChangePassword, setShowChangePassword] = useState(false);
 
   return (
@@ -26,6 +27,9 @@ const Header = ({ title, subtitle, showExport, onExport }: HeaderProps) => {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
             {/* Change Password Button */}
             <button
               onClick={() => setShowChangePassword(true)}
@@ -43,10 +47,7 @@ const Header = ({ title, subtitle, showExport, onExport }: HeaderProps) => {
 
             {/* Dark Mode Toggle */}
             <button
-              onClick={() => {
-                toggleTheme();
-                setIsDark(prev => !prev);
-              }}
+              onClick={toggleTheme}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
               {isDark ? (
