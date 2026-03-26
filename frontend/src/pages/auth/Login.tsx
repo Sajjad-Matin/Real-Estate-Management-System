@@ -35,6 +35,7 @@ const Login = () => {
   };
 
   return (
+    // Todo: Fix The Login UI and Its multilangauge Functinality
     <div className="min-h-screen bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center p-4">
       {/* Language Switcher - Top Right */}
       <div className="absolute top-4 right-4">
