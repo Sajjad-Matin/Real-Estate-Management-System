@@ -35,10 +35,8 @@ export class UsersService {
       }
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // Create user
     const newUser = await this.prisma.user.create({
       data: {
         fullName: dto.fullName,
@@ -62,7 +60,6 @@ export class UsersService {
       },
     });
 
-    // ✅ Log audit after user is created
     if (currentUserId) {
       await this.auditLogService.logCreate(currentUserId, 'User', newUser.id, {
         fullName: newUser.fullName,
@@ -80,7 +77,6 @@ export class UsersService {
   async findAll(page: number = 1, limit: number = 10, search?: string) {
     const where: any = {};
 
-    // Search by name or email
     if (search) {
       where.OR = [
         { fullName: { contains: search, mode: 'insensitive' } },
@@ -253,7 +249,6 @@ export class UsersService {
       },
     });
 
-    // ✅ Log audit
     await this.auditLogService.logUpdate(currentUserId, 'User', id, {
       changes: updateUserDto,
     });
@@ -281,7 +276,6 @@ export class UsersService {
       where: { id },
     });
 
-    // ✅ Log audit
     await this.auditLogService.logDelete(currentUserId, 'User', id, {
       deletedUser: user.fullName,
     });
@@ -303,12 +297,10 @@ export class UsersService {
       data: { isActive: false },
     });
 
-    // Delete all active sessions
     await this.prisma.session.deleteMany({
       where: { userId: id },
     });
 
-    // ✅ Log audit
     await this.auditLogService.log({
       userId: currentUserId,
       action: 'DEACTIVATE_USER',
@@ -337,7 +329,6 @@ export class UsersService {
       data: { isActive: true },
     });
 
-    // ✅ Log audit
     await this.auditLogService.log({
       userId: currentUserId,
       action: 'ACTIVATE_USER',
