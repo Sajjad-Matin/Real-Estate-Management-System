@@ -1,4 +1,4 @@
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface BarChartProps {
   data: any[];
@@ -10,6 +10,7 @@ interface BarChartProps {
 
 const BarChart = ({ data, xKey, yKey, title, color = '#3b82f6' }: BarChartProps) => {
   return (
+    //Enhance the Useabilitiy
     <div className="w-full h-full">
       {title && <h3 className="text-lg font-semibold text-primary mb-4">{title}</h3>}
       <ResponsiveContainer width="100%" height="100%">
