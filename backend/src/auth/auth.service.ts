@@ -1,13 +1,11 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
-  CreateUserDto,
   ForgotPasswordDto,
   LoginDto,
   RefreshTokenDto,
@@ -16,7 +14,6 @@ import {
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { JwtService } from '@nestjs/jwt';
-import { UserRole } from '@prisma/client';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { EmailService } from 'src/common/services/email.service';
 import { AuditAction, AuditService } from 'src/common/services/audit.service';
@@ -32,55 +29,33 @@ export class AuthService {
     private auditLogService: AuditLoggerService,
   ) {}
 
-  async getMe(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        role: true,
-        language: true,
-        isActive: true,
-        agencyId: true,
-        agency: {
-          select: {
-            id: true,
-            name: true,
-            licenseNumber: true,
-            address: true,
-            region: true,
-            status: true,
-          },
-        },
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
+  // ✅ Password validation helper
+  private validatePassword(password: string) {
+    if (password.length < 6) {
+      throw new BadRequestException('Password must be at least 6 characters');
     }
-
-    return user;
+    if (!/[A-Za-z]/.test(password)) {
+      throw new BadRequestException('Password must contain a letter');
+    }
+    if (!/[0-9]/.test(password)) {
+      throw new BadRequestException('Password must contain a number');
+    }
   }
 
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
 
-    if (!user.isActive) {
-      throw new UnauthorizedException('Account is disabled');
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const passwordMatches = await bcrypt.compare(
       dto.password,
       user.passwordHash,
     );
+
     if (!passwordMatches) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -94,7 +69,7 @@ export class AuthService {
       },
       {
         expiresIn: '15m',
-        secret: process.env.JWT_SECRET,
+        secret: process.env.JWT_SECRET || 'fallback-secret',
       },
     );
 
@@ -105,7 +80,10 @@ export class AuthService {
       },
       {
         expiresIn: '7d',
-        secret: process.env.JWT_REFRESH_SECRET,
+        secret:
+          process.env.JWT_REFRESH_SECRET ||
+          process.env.JWT_SECRET ||
+          'fallback-refresh-secret',
       },
     );
 
@@ -120,7 +98,6 @@ export class AuthService {
       },
     });
 
-    // ✅ Log to old audit service
     await this.auditService.log({
       userId: user.id,
       action: AuditAction.LOGIN,
@@ -130,7 +107,6 @@ export class AuthService {
       userAgent,
     });
 
-    // ✅ Log to new audit log service
     await this.auditLogService.logLogin(user.id, ipAddress, userAgent);
 
     return {
@@ -153,7 +129,7 @@ export class AuthService {
       include: { user: true },
     });
 
-    if (!session) {
+    if (!session || !session.user.isActive) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -164,13 +140,12 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token expired');
     }
 
-    if (!session.user.isActive) {
-      throw new UnauthorizedException('Account is disabled');
-    }
-
     try {
       await this.jwt.verifyAsync(dto.refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+        secret:
+          process.env.JWT_REFRESH_SECRET ||
+          process.env.JWT_SECRET ||
+          'fallback-refresh-secret',
       });
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
@@ -185,13 +160,11 @@ export class AuthService {
       },
       {
         expiresIn: '15m',
-        secret: process.env.JWT_SECRET,
+        secret: process.env.JWT_SECRET || 'fallback-secret',
       },
     );
 
-    return {
-      accessToken,
-    };
+    return { accessToken };
   }
 
   async logout(
@@ -201,10 +174,7 @@ export class AuthService {
     userAgent?: string,
   ) {
     const session = await this.prisma.session.findFirst({
-      where: {
-        userId,
-        refreshToken,
-      },
+      where: { userId, refreshToken },
     });
 
     if (session) {
@@ -213,7 +183,6 @@ export class AuthService {
       });
     }
 
-    // ✅ Log audit
     await this.auditLogService.logLogout(userId, ipAddress, userAgent);
 
     return { message: 'Logged out successfully' };
@@ -224,9 +193,7 @@ export class AuthService {
       where: { id: userId },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    if (!user) throw new NotFoundException('User not found');
 
     const passwordMatches = await bcrypt.compare(
       dto.currentPassword,
@@ -237,14 +204,10 @@ export class AuthService {
       throw new BadRequestException('Current password is incorrect');
     }
 
-    const sameAsOld = await bcrypt.compare(dto.newPassword, user.passwordHash);
-    if (sameAsOld) {
-      throw new BadRequestException(
-        'New password must be different from current password',
-      );
-    }
+    this.validatePassword(dto.newPassword);
 
-    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+    const hashedPassword = await bcrypt.hash(dto.newPassword, saltRounds);
 
     await this.prisma.user.update({
       where: { id: userId },
@@ -285,11 +248,11 @@ export class AuthService {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
-    if (true) {
+    if (process.env.NODE_ENV !== 'test') {
       try {
         await this.emailService.sendPasswordReset(user.email, resetLink);
-      } catch (error) {
-        console.error('Failed to send password reset email:', error);
+      } catch {
+        throw new BadRequestException('Failed to send reset email');
       }
     }
 
@@ -319,7 +282,10 @@ export class AuthService {
       throw new BadRequestException('Reset token has already been used');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    this.validatePassword(dto.newPassword);
+
+    const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+    const hashedPassword = await bcrypt.hash(dto.newPassword, saltRounds);
 
     await this.prisma.user.update({
       where: { id: passwordReset.userId },
