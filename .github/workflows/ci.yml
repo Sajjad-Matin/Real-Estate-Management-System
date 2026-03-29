@@ -1,5 +1,8 @@
 name: CI/CD Pipeline
 
+env:
+  DATABASE_URL: "file:./test.db"
+
 on:
   push:
     branches: [ main, develop ]
