@@ -38,6 +38,8 @@ const TransactionsList = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<VerificationStatus | "">("");
   const [tradeTypeFilter, setTradeTypeFilter] = useState<TradeType | "">("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -54,7 +56,7 @@ const TransactionsList = () => {
 
   useEffect(() => {
     fetchTransactions();
-  }, [search, statusFilter, tradeTypeFilter, currentPage]);
+  }, [search, statusFilter, tradeTypeFilter, minPrice, maxPrice, currentPage]);
 
   const canCreate =
     user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.AGENCY_ADMIN;
@@ -70,6 +72,8 @@ const TransactionsList = () => {
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
       if (tradeTypeFilter) params.tradeType = tradeTypeFilter;
+      if (minPrice) params.minPrice = Number(minPrice);
+      if (maxPrice) params.maxPrice = Number(maxPrice);
 
       const response = await transactionsApi.getAll(params);
       setTransactions(response.data);
@@ -267,6 +271,24 @@ const TransactionsList = () => {
                   <option value={TradeType.RENT}>Rent</option>
                   <option value={TradeType.TRANSFER}>Transfer</option>
                 </select>
+
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    placeholder="Min Price"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    className="w-24"
+                  />
+                  <span className="text-secondary">-</span>
+                  <Input
+                    type="number"
+                    placeholder="Max Price"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    className="w-24"
+                  />
+                </div>
 
                 {canCreate && (
                   <Button
