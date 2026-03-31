@@ -8,7 +8,6 @@ import {
   UseGuards,
   Query,
   Post,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
@@ -31,7 +30,7 @@ export class UsersController {
 
   @Patch(':id')
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
     @CurrentUser() user: any,
   ) {
@@ -39,26 +38,17 @@ export class UsersController {
   }
 
   @Delete(':id')
-  async remove(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() currentUser: any,
-  ) {
+  async remove(@Param('id') id: string, @CurrentUser() currentUser: any) {
     return this.usersService.remove(id, currentUser.id);
   }
 
   @Patch(':id/activate')
-  async activate(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() currentUser: any,
-  ) {
+  async activate(@Param('id') id: string, @CurrentUser() currentUser: any) {
     return this.usersService.activate(id, currentUser.id);
   }
 
   @Patch(':id/deactivate')
-  async deactivate(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() currentUser: any,
-  ) {
+  async deactivate(@Param('id') id: string, @CurrentUser() currentUser: any) {
     return this.usersService.deactivate(id, currentUser.id);
   }
-}
+} 

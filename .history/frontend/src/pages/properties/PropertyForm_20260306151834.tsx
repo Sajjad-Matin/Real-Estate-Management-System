@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import MainLayout from "../../components/layout/MainLayout";
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
-import { propertiesApi, type CreatePropertyData } from "../../api/properties";
-import { agenciesApi } from "../../api/agencies";
-import { ArrowLeft, AlertCircle } from "lucide-react";
-import { useAuthStore } from "../../stores/authStore";
-import { UserRole, type Agency } from "../../types";
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import MainLayout from '../../components/layout/MainLayout';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import { propertiesApi, type CreatePropertyData } from '../../api/properties';
+import { agenciesApi } from '../../api/agencies';
+import { ArrowLeft } from 'lucide-react';
+import { useAuthStore } from '../../stores/authStore';
+import { UserRole, type Agency } from '../../types';
 
 const PropertyForm = () => {
   const navigate = useNavigate();
@@ -19,11 +19,11 @@ const PropertyForm = () => {
   const [loading, setLoading] = useState(false);
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [formData, setFormData] = useState<CreatePropertyData>({
-    title: "",
-    address: "",
-    region: "",
-    cadastralNo: "",
-    agencyId: user?.agencyId || "",
+    title: '',
+    address: '',
+    region: '',
+    cadastralNo: '',
+    agencyId: user?.agencyId || '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -32,7 +32,7 @@ const PropertyForm = () => {
     if (user?.role === UserRole.SUPER_ADMIN) {
       fetchAgencies();
     }
-
+    
     if (isEdit && id) {
       fetchProperty(id);
     }
@@ -43,7 +43,7 @@ const PropertyForm = () => {
       const response = await agenciesApi.getAll({ limit: 100 });
       setAgencies(response.data);
     } catch (error) {
-      console.error("Failed to fetch agencies:", error);
+      console.error('Failed to fetch agencies:', error);
     }
   };
 
@@ -54,11 +54,11 @@ const PropertyForm = () => {
         title: property.title,
         address: property.address,
         region: property.region,
-        cadastralNo: property.cadastralNo || "",
+        cadastralNo: property.cadastralNo || '',
         agencyId: property.agencyId,
       });
     } catch (error) {
-      console.error("Failed to fetch property:", error);
+      console.error('Failed to fetch property:', error);
     }
   };
 
@@ -73,7 +73,7 @@ const PropertyForm = () => {
       } else {
         await propertiesApi.create(formData);
       }
-      navigate("/properties");
+      navigate('/properties');
     } catch (error: any) {
       if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
@@ -84,11 +84,11 @@ const PropertyForm = () => {
   };
 
   return (
-    <MainLayout title={isEdit ? "Edit Property" : "Create Property"}>
+    <MainLayout title={isEdit ? 'Edit Property' : 'Create Property'}>
       <div className="p-6">
         <Button
           variant="secondary"
-          onClick={() => navigate("/properties")}
+          onClick={() => navigate('/properties')}
           className="mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -107,9 +107,7 @@ const PropertyForm = () => {
               label="Property Title"
               type="text"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               error={errors.title}
               placeholder="e.g., Villa in Wazir Akbar Khan"
               required
@@ -119,9 +117,7 @@ const PropertyForm = () => {
               label="Address"
               type="text"
               value={formData.address}
-              onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               error={errors.address}
               placeholder="e.g., Street 15, House 234"
               required
@@ -131,9 +127,7 @@ const PropertyForm = () => {
               label="Region"
               type="text"
               value={formData.region}
-              onChange={(e) =>
-                setFormData({ ...formData, region: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, region: e.target.value })}
               error={errors.region}
               placeholder="e.g., Kabul, Herat, Kandahar"
               required
@@ -143,9 +137,7 @@ const PropertyForm = () => {
               label="Cadastral Number (Optional)"
               type="text"
               value={formData.cadastralNo}
-              onChange={(e) =>
-                setFormData({ ...formData, cadastralNo: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, cadastralNo: e.target.value })}
               error={errors.cadastralNo}
               placeholder="e.g., CAD-2024-001"
             />
@@ -157,9 +149,7 @@ const PropertyForm = () => {
                 </label>
                 <select
                   value={formData.agencyId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, agencyId: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, agencyId: e.target.value })}
                   className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   required
                 >
@@ -171,32 +161,15 @@ const PropertyForm = () => {
                   ))}
                 </select>
                 {errors.agencyId && (
-                  <p className="mt-1 text-sm text-danger-600">
-                    {errors.agencyId}
-                  </p>
+                  <p className="mt-1 text-sm text-danger-600">{errors.agencyId}</p>
                 )}
-              </div>
-            )}
-
-            {isEdit && user?.role === UserRole.SUPER_ADMIN && (
-              <div className="bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 text-warning-800 dark:text-warning-200 px-4 py-3 rounded-lg flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Agency Transfer</p>
-                  <p className="text-xs mt-1">
-                    Changing the agency here will transfer ownership of this
-                    property and all its related records to the newly selected
-                    agency.
-                  </p>
-                </div>
               </div>
             )}
 
             {user?.role === UserRole.AGENCY_ADMIN && user.agency && (
               <div className="bg-info-50 dark:bg-info-900/20 border border-info-200 dark:border-info-800 text-info-800 dark:text-info-200 px-4 py-3 rounded-lg">
                 <p className="text-sm">
-                  This property will be registered under:{" "}
-                  <strong>{user.agency.name}</strong>
+                  This property will be registered under: <strong>{user.agency.name}</strong>
                 </p>
               </div>
             )}
@@ -208,12 +181,12 @@ const PropertyForm = () => {
                 isLoading={loading}
                 className="flex-1"
               >
-                {isEdit ? "Update Property" : "Create Property"}
+                {isEdit ? 'Update Property' : 'Create Property'}
               </Button>
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => navigate("/properties")}
+                onClick={() => navigate('/properties')}
                 className="flex-1"
               >
                 Cancel

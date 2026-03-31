@@ -306,4 +306,17 @@ export class AuthService {
         'Password reset successfully. Please login with your new password.',
     };
   }
+
+  async getMe(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const { passwordHash, ...safeUser } = user;
+    return safeUser;
+  }
 }
