@@ -7,21 +7,25 @@ import {
   IsUUID,
   ValidateIf,
 } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateUserDto {
-  /** Optional full name for the user */
+  @ApiPropertyOptional({ description: 'Full name of the user' })
   @IsString()
   @IsOptional()
   fullName?: string;
 
+  @ApiPropertyOptional({ enum: Language })
   @IsEnum(Language)
   @IsOptional()
   language?: Language;
 
+  @ApiPropertyOptional({ enum: UserRole })
   @IsEnum(UserRole)
   @IsOptional()
   role?: UserRole;
 
+  @ApiPropertyOptional({ type: Boolean })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;

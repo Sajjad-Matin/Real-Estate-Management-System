@@ -200,16 +200,13 @@ export class PropertiesService {
     }
 
     // If AGENCY_ADMIN, verify they own this property
-    if (currentUser.role === UserRole.AGENCY_ADMIN) {
-      if (property.agencyId !== currentUser.agencyId) {
-        throw new ForbiddenException(
-          'You do not have permission to update this property',
-        );
-      }
-      // Security: Strip agencyId if passed by non super admin
-      if (updatePropertyDto.agencyId) {
-        delete updatePropertyDto.agencyId;
-      }
+    if (
+      currentUser.role === UserRole.AGENCY_ADMIN &&
+      property.agencyId !== currentUser.agencyId
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to update this property',
+      );
     }
 
     // Check cadastral number uniqueness if being updated

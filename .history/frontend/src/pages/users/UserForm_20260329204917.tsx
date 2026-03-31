@@ -7,10 +7,13 @@ import Input from "../../components/ui/Input";
 import { usersApi, type CreateUserData } from "../../api/users";
 import { agenciesApi } from "../../api/agencies";
 import { UserRole, Language, type Agency } from "../../types";
+import { UserRole, Language, type Agency } from "../../types";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 
 const UserForm = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
   const navigate = useNavigate();
   const { id } = useParams();
   const { user } = useAuthStore();

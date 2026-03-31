@@ -1,5 +1,4 @@
-import { IsOptional, IsEnum, IsUUID, IsNumber, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsEnum, IsUUID } from 'class-validator';
 import { SearchDto } from 'src/common/dto/search.dto';
 import { VerificationStatus, TradeType } from '@prisma/client';
 
@@ -19,16 +18,4 @@ export class SearchTransactionsDto extends SearchDto {
   @IsOptional()
   @IsUUID()
   agencyId?: string;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  minPrice?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  maxPrice?: number;
 }

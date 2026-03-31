@@ -2,7 +2,6 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserRole } from '@prisma/client';
@@ -194,13 +193,7 @@ export class UsersService {
     return user;
   }
 
-  async update(
-    id: string,
-    updateUserDto: UpdateUserDto,
-    currentUserId: string,
-  ) {
-    await this.validateSuperAdminPromotion(updateUserDto.role, currentUserId);
-
+  async update(id: string, updateUserDto: UpdateUserDto, currentUserId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -348,23 +341,5 @@ export class UsersService {
       message: 'User activated successfully',
       user: updatedUser,
     };
-  }
-
-  private async validateSuperAdminPromotion(
-    requestedRole?: UserRole,
-    currentUserId?: string,
-  ) {
-    if (requestedRole === UserRole.SUPER_ADMIN && currentUserId) {
-      const callingUser = await this.prisma.user.findUnique({
-        where: { id: currentUserId },
-        select: { role: true },
-      });
-
-      if (callingUser?.role !== UserRole.SUPER_ADMIN) {
-        throw new ForbiddenException(
-          'Only a Super Admin can grant Super Admin privileges',
-        );
-      }
-    }
   }
 }

@@ -1,0 +1,1036 @@
+[1mdiff --git a/backend/src/auth/auth.service.spec.ts b/backend/src/auth/auth.service.spec.ts[m
+[1mindex f71fbe6..3e18817 100644[m
+[1m--- a/backend/src/auth/auth.service.spec.ts[m
+[1m+++ b/backend/src/auth/auth.service.spec.ts[m
+[36m@@ -3,6 +3,17 @@[m [mimport { AuthService } from './auth.service';[m
+ import { PrismaService } from 'src/prisma/prisma.service';[m
+ import { JwtService } from '@nestjs/jwt';[m
+ import * as bcrypt from 'bcrypt';[m
+[32m+[m[32mimport { EmailService } from 'src/email/email.service';[m
+[32m+[m[32m// import { EmailService } from '../email/email.service';[m
+[32m+[m[32m// Update the import path below if the actual file location is different[m
+[32m+[m[32m// Example: import { EmailService } from 'src/email/email.service';[m
+[32m+[m[32m// Update the import path below if the actual file location is different[m
+[32m+[m[32mimport { AuditService } from 'src/audit/audit.service';[m
+[32m+[m[32m// import { AuditService } from '../audit/audit.service';[m
+[32m+[m[32m// import { AuditService } from 'src/audit/audit.service';[m
+[32m+[m[32m// Update the import path below to the correct relative path if needed[m
+[32m+[m[32m// Example: import { AuditService } from '../audit/audit.service';[m
+[32m+[m[32m// import { AuditLoggerService } from 'src/audit/audit-logger.service';[m
+ [m
+ describe('AuthService', () => {[m
+   let service: AuthService;[m
+[36m@@ -20,12 +31,19 @@[m [mdescribe('AuthService', () => {[m
+     signAsync: jest.fn().mockResolvedValue('mock-token'),[m
+   };[m
+ [m
+[32m+[m[32m  const mockEmailService = { sendPasswordReset: jest.fn() };[m
+[32m+[m[32m  const mockAuditService = {};[m
+[32m+[m[32m  const mockAuditLoggerService = {};[m
+[32m+[m
+   beforeEach(async () => {[m
+     const module: TestingModule = await Test.createTestingModule({[m
+       providers: [[m
+         AuthService,[m
+         { provide: PrismaService, useValue: mockPrisma },[m
+         { provide: JwtService, useValue: mockJwt },[m
+[32m+[m[32m        { provide: EmailService, useValue: mockEmailService },[m
+[32m+[m[32m        { provide: AuditService, useValue: mockAuditService },[m
+[32m+[m[32m        // { provide: AuditLoggerService, useValue: mockAuditLoggerService },[m
+       ],[m
+     }).compile();[m
+ [m
+[36m@@ -59,4 +77,24 @@[m [mdescribe('AuthService', () => {[m
+ [m
+     expect(result.accessToken).toBeDefined();[m
+   });[m
+[31m-});[m
+\ No newline at end of file[m
+[32m+[m
+[32m+[m[32m  it('should send password reset email', async () => {[m
+[32m+[m[32m    const mockUser = {[m
+[32m+[m[32m      id: '1',[m
+[32m+[m[32m      email: 'test@test.com',[m
+[32m+[m[32m      passwordHash: await bcrypt.hash('123456', 10),[m
+[32m+[m[32m      isActive: true,[m
+[32m+[m[32m      role: 'SUPER_ADMIN',[m
+[32m+[m[32m      agencyId: null,[m
+[32m+[m[32m    };[m
+[32m+[m
+[32m+[m[32m    mockPrisma.user.findUnique.mockResolvedValue(mockUser);[m
+[32m+[m
+[32m+[m[32m    await service.sendPasswordReset('test@test.com');[m
+[32m+[m
+[32m+[m[32m    expect(mockEmailService.sendPasswordReset).toHaveBeenCalledWith([m
+[32m+[m[32m      'test@test.com',[m
+[32m+[m[32m      expect.anything(),[m
+[32m+[m[32m    );[m
+[32m+[m[32m  });[m
+[32m+[m[32m});[m
+[1mdiff --git a/backend/src/auth/auth.service.ts b/backend/src/auth/auth.service.ts[m
+[1mindex a10f82d..9099bfe 100644[m
+[1m--- a/backend/src/auth/auth.service.ts[m
+[1m+++ b/backend/src/auth/auth.service.ts[m
+[36m@@ -306,4 +306,17 @@[m [mexport class AuthService {[m
+         'Password reset successfully. Please login with your new password.',[m
+     };[m
+   }[m
+[32m+[m
+[32m+[m[32m  async getMe(userId: string) {[m
+[32m+[m[32m    const user = await this.prisma.user.findUnique({[m
+[32m+[m[32m      where: { id: userId },[m
+[32m+[m[32m    });[m
+[32m+[m
+[32m+[m[32m    if (!user) {[m
+[32m+[m[32m      throw new NotFoundException('User not found');[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    const { passwordHash, ...safeUser } = user;[m
+[32m+[m[32m    return safeUser;[m
+[32m+[m[32m  }[m
+ }[m
+\ No newline at end of file[m
+[1mdiff --git a/backend/src/properties/dto/update-property.dto.ts b/backend/src/properties/dto/update-property.dto.ts[m
+[1mindex 3e4c055..bb467ee 100644[m
+[1m--- a/backend/src/properties/dto/update-property.dto.ts[m
+[1m+++ b/backend/src/properties/dto/update-property.dto.ts[m
+[36m@@ -2,7 +2,5 @@[m [mimport { PartialType } from '@nestjs/mapped-types';[m
+ import { CreatePropertyDto } from './create-property.dto';[m
+ import { OmitType } from '@nestjs/mapped-types';[m
+ [m
+[31m-// Exclude agencyId from updates[m
+[31m-export class UpdatePropertyDto extends PartialType([m
+[31m-  OmitType(CreatePropertyDto, ['agencyId'] as const),[m
+[31m-) {}[m
+\ No newline at end of file[m
+[32m+[m[32m// Exclude agencyId from updates for non-super-admins (handled in service)[m
+[32m+[m[32mexport class UpdatePropertyDto extends PartialType(CreatePropertyDto) {}[m
+[1mdiff --git a/backend/src/properties/properties.controller.ts b/backend/src/properties/properties.controller.ts[m
+[1mindex 675c8c7..c2f495f 100644[m
+[1m--- a/backend/src/properties/properties.controller.ts[m
+[1m+++ b/backend/src/properties/properties.controller.ts[m
+[36m@@ -8,9 +8,14 @@[m [mimport {[m
+   Delete,[m
+   UseGuards,[m
+   Query,[m
+[32m+[m[32m  ParseUUIDPipe,[m
+ } from '@nestjs/common';[m
+ import { PropertiesService } from './properties.service';[m
+[31m-import { CreatePropertyDto, SearchPropertiesDto, UpdatePropertyDto } from './dto';[m
+[32m+[m[32mimport {[m
+[32m+[m[32m  CreatePropertyDto,[m
+[32m+[m[32m  SearchPropertiesDto,[m
+[32m+[m[32m  UpdatePropertyDto,[m
+[32m+[m[32m} from './dto';[m
+ import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';[m
+ import { UserRole } from '@prisma/client';[m
+ import { RolesGuard } from 'src/auth/guards/roles.guard';[m
+[36m@@ -49,7 +54,7 @@[m [mexport class PropertiesController {[m
+   @Patch(':id')[m
+   @Roles(UserRole.SUPER_ADMIN, UserRole.AGENCY_ADMIN)[m
+   async update([m
+[31m-    @Param('id') id: string,[m
+[32m+[m[32m    @Param('id', ParseUUIDPipe) id: string,[m
+     @Body() updatePropertyDto: UpdatePropertyDto,[m
+     @CurrentUser() currentUser: any,[m
+   ) {[m
+[1mdiff --git a/backend/src/properties/properties.service.ts b/backend/src/properties/properties.service.ts[m
+[1mindex 6b8ba63..5749b9e 100644[m
+[1m--- a/backend/src/properties/properties.service.ts[m
+[1m+++ b/backend/src/properties/properties.service.ts[m
+[36m@@ -200,13 +200,16 @@[m [mexport class PropertiesService {[m
+     }[m
+ [m
+     // If AGENCY_ADMIN, verify they own this property[m
+[31m-    if ([m
+[31m-      currentUser.role === UserRole.AGENCY_ADMIN &&[m
+[31m-      property.agencyId !== currentUser.agencyId[m
+[31m-    ) {[m
+[31m-      throw new ForbiddenException([m
+[31m-        'You do not have permission to update this property',[m
+[31m-      );[m
+[32m+[m[32m    if (currentUser.role === UserRole.AGENCY_ADMIN) {[m
+[32m+[m[32m      if (property.agencyId !== currentUser.agencyId) {[m
+[32m+[m[32m        throw new ForbiddenException([m
+[32m+[m[32m          'You do not have permission to update this property',[m
+[32m+[m[32m        );[m
+[32m+[m[32m      }[m
+[32m+[m[32m      // Security: Strip agencyId if passed by non super admin[m
+[32m+[m[32m      if (updatePropertyDto.agencyId) {[m
+[32m+[m[32m        delete updatePropertyDto.agencyId;[m
+[32m+[m[32m      }[m
+     }[m
+ [m
+     // Check cadastral number uniqueness if being updated[m
+[1mdiff --git a/backend/src/transactions/dto/search-transactions.dto.ts b/backend/src/transactions/dto/search-transactions.dto.ts[m
+[1mindex 6e9fcd8..dab9eb9 100644[m
+[1m--- a/backend/src/transactions/dto/search-transactions.dto.ts[m
+[1m+++ b/backend/src/transactions/dto/search-transactions.dto.ts[m
+[36m@@ -1,4 +1,5 @@[m
+[31m-import { IsOptional, IsEnum, IsUUID } from 'class-validator';[m
+[32m+[m[32mimport { IsOptional, IsEnum, IsUUID, IsNumber, Min } from 'class-validator';[m
+[32m+[m[32mimport { Type } from 'class-transformer';[m
+ import { SearchDto } from 'src/common/dto/search.dto';[m
+ import { VerificationStatus, TradeType } from '@prisma/client';[m
+ [m
+[36m@@ -18,4 +19,16 @@[m [mexport class SearchTransactionsDto extends SearchDto {[m
+   @IsOptional()[m
+   @IsUUID()[m
+   agencyId?: string;[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m
+[32m+[m[32m  @IsOptional()[m
+[32m+[m[32m  @Type(() => Number)[m
+[32m+[m[32m  @IsNumber()[m
+[32m+[m[32m  @Min(0)[m
+[32m+[m[32m  minPrice?: number;[m
+[32m+[m
+[32m+[m[32m  @IsOptional()[m
+[32m+[m[32m  @Type(() => Number)[m
+[32m+[m[32m  @IsNumber()[m
+[32m+[m[32m  @Min(0)[m
+[32m+[m[32m  maxPrice?: number;[m
+[32m+[m[32m}[m
+[1mdiff --git a/backend/src/transactions/transactions.service.spec.ts b/backend/src/transactions/transactions.service.spec.ts[m
+[1mnew file mode 100644[m
+[1mindex 0000000..668efc2[m
+[1m--- /dev/null[m
+[1m+++ b/backend/src/transactions/transactions.service.spec.ts[m
+[36m@@ -0,0 +1,75 @@[m
+[32m+[m[32mimport { Test, TestingModule } from '@nestjs/testing';[m
+[32m+[m[32mimport { TransactionsService } from './transactions.service';[m
+[32m+[m[32mimport { PrismaService } from 'src/prisma/prisma.service';[m
+[32m+[m[32mimport { AuditService } from 'src/common/services/audit.service';[m
+[32m+[m[32mimport { PaginationService } from 'src/common/services/pagination.service';[m
+[32m+[m[32mimport { UserRole, VerificationStatus } from '@prisma/client';[m
+[32m+[m[32mimport { CurrentUser } from 'src/common/types';[m
+[32m+[m
+[32m+[m[32mdescribe('TransactionsService', () => {[m
+[32m+[m[32m  let service: TransactionsService;[m
+[32m+[m[32m  let prisma: PrismaService;[m
+[32m+[m
+[32m+[m[32m  beforeEach(async () => {[m
+[32m+[m[32m    const module: TestingModule = await Test.createTestingModule({[m
+[32m+[m[32m      providers: [[m
+[32m+[m[32m        TransactionsService,[m
+[32m+[m[32m        {[m
+[32m+[m[32m          provide: PrismaService,[m
+[32m+[m[32m          useValue: {[m
+[32m+[m[32m            tradeTransaction: {[m
+[32m+[m[32m              findMany: jest.fn(),[m
+[32m+[m[32m              count: jest.fn().mockResolvedValue(1),[m
+[32m+[m[32m            },[m
+[32m+[m[32m          },[m
+[32m+[m[32m        },[m
+[32m+[m[32m        {[m
+[32m+[m[32m          provide: AuditService,[m
+[32m+[m[32m          useValue: { log: jest.fn() },[m
+[32m+[m[32m        },[m
+[32m+[m[32m        {[m
+[32m+[m[32m          provide: PaginationService,[m
+[32m+[m[32m          useValue: {[m
+[32m+[m[32m            getSkip: jest.fn().mockReturnValue(0),[m
+[32m+[m[32m            paginate: jest.fn().mockReturnValue({ data: [], meta: {} }),[m
+[32m+[m[32m          },[m
+[32m+[m[32m        },[m
+[32m+[m[32m      ],[m
+[32m+[m[32m    }).compile();[m
+[32m+[m
+[32m+[m[32m    service = module.get<TransactionsService>(TransactionsService);[m
+[32m+[m[32m    prisma = module.get<PrismaService>(PrismaService);[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  it('should be defined', () => {[m
+[32m+[m[32m    expect(service).toBeDefined();[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  describe('findAll filters', () => {[m
+[32m+[m[32m    it('should strictly filter by PENDING for INSPECTOR roles overriding status query', async () => {[m
+[32m+[m[32m      const mockUser: CurrentUser = {[m
+[32m+[m[32m        id: 'inspector-cmd',[m
+[32m+[m[32m        email: 'test@admin.com',[m
+[32m+[m[32m        role: UserRole.INSPECTOR,[m
+[32m+[m[32m        agencyId: null,[m
+[32m+[m[32m      };[m
+[32m+[m
+[32m+[m[32m      const searchDto = {[m
+[32m+[m[32m        page: 1,[m
+[32m+[m[32m        limit: 10,[m
+[32m+[m[32m        status: VerificationStatus.APPROVED, // Malicious / bypassing parameter[m
+[32m+[m[32m      };[m
+[32m+[m
+[32m+[m[32m      await service.findAll(mockUser, searchDto);[m
+[32m+[m
+[32m+[m[32m      // Verify that where clause forces PENDING status, ignoring the APPROVED filter[m
+[32m+[m[32m      expect(prisma.tradeTransaction.findMany).toHaveBeenCalledWith([m
+[32m+[m[32m        expect.objectContaining({[m
+[32m+[m[32m          where: expect.objectContaining({[m
+[32m+[m[32m            status: VerificationStatus.PENDING,[m
+[32m+[m[32m          }),[m
+[32m+[m[32m        }),[m
+[32m+[m[32m      );[m
+[32m+[m[32m    });[m
+[32m+[m[32m  });[m
+[32m+[m[32m});[m
+[1mdiff --git a/backend/src/transactions/transactions.service.ts b/backend/src/transactions/transactions.service.ts[m
+[1mindex e6b62ea..cc17339 100644[m
+[1m--- a/backend/src/transactions/transactions.service.ts[m
+[1m+++ b/backend/src/transactions/transactions.service.ts[m
+[36m@@ -120,6 +120,8 @@[m [mexport class TransactionsService {[m
+       tradeType,[m
+       propertyId,[m
+       agencyId,[m
+[32m+[m[32m      minPrice,[m
+[32m+[m[32m      maxPrice,[m
+     } = searchDto;[m
+ [m
+     // Build where clause[m
+[36m@@ -132,7 +134,7 @@[m [mexport class TransactionsService {[m
+       where.status = VerificationStatus.PENDING;[m
+     }[m
+ [m
+[31m-    if (status) {[m
+[32m+[m[32m    if (status && currentUser.role !== UserRole.INSPECTOR) {[m
+       where.status = status;[m
+     }[m
+ [m
+[36m@@ -148,6 +150,12 @@[m [mexport class TransactionsService {[m
+       where.agencyId = agencyId;[m
+     }[m
+ [m
+[32m+[m[32m    if (minPrice !== undefined || maxPrice !== undefined) {[m
+[32m+[m[32m      where.price = {};[m
+[32m+[m[32m      if (minPrice !== undefined) where.price.gte = minPrice;[m
+[32m+[m[32m      if (maxPrice !== undefined) where.price.lte = maxPrice;[m
+[32m+[m[32m    }[m
+[32m+[m
+     if (search) {[m
+       where.OR = [[m
+         { buyerName: { contains: search, mode: 'insensitive' } },[m
+[1mdiff --git a/backend/src/users/dto/update-user.dto.ts b/backend/src/users/dto/update-user.dto.ts[m
+[1mindex 1c1fc6b..8992d73 100644[m
+[1m--- a/backend/src/users/dto/update-user.dto.ts[m
+[1m+++ b/backend/src/users/dto/update-user.dto.ts[m
+[36m@@ -9,6 +9,7 @@[m [mimport {[m
+ } from 'class-validator';[m
+ [m
+ export class UpdateUserDto {[m
+[32m+[m[32m  /** Optional full name for the user */[m
+   @IsString()[m
+   @IsOptional()[m
+   fullName?: string;[m
+[36m@@ -29,4 +30,4 @@[m [mexport class UpdateUserDto {[m
+   @IsUUID()[m
+   @IsOptional()[m
+   agencyId?: string;[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m[32m}[m
+[1mdiff --git a/backend/src/users/users.controller.ts b/backend/src/users/users.controller.ts[m
+[1mindex 28f21a2..db0a252 100644[m
+[1m--- a/backend/src/users/users.controller.ts[m
+[1m+++ b/backend/src/users/users.controller.ts[m
+[36m@@ -8,6 +8,7 @@[m [mimport {[m
+   UseGuards,[m
+   Query,[m
+   Post,[m
+[32m+[m[32m  ParseUUIDPipe,[m
+ } from '@nestjs/common';[m
+ import { UsersService } from './users.service';[m
+ import { CreateUserDto, UpdateUserDto } from './dto';[m
+[36m@@ -30,7 +31,7 @@[m [mexport class UsersController {[m
+ [m
+   @Patch(':id')[m
+   async update([m
+[31m-    @Param('id') id: string,[m
+[32m+[m[32m    @Param('id', ParseUUIDPipe) id: string,[m
+     @Body() updateUserDto: UpdateUserDto,[m
+     @CurrentUser() user: any,[m
+   ) {[m
+[36m@@ -38,17 +39,26 @@[m [mexport class UsersController {[m
+   }[m
+ [m
+   @Delete(':id')[m
+[31m-  async remove(@Param('id') id: string, @CurrentUser() currentUser: any) {[m
+[32m+[m[32m  async remove([m
+[32m+[m[32m    @Param('id', ParseUUIDPipe) id: string,[m
+[32m+[m[32m    @CurrentUser() currentUser: any,[m
+[32m+[m[32m  ) {[m
+     return this.usersService.remove(id, currentUser.id);[m
+   }[m
+ [m
+   @Patch(':id/activate')[m
+[31m-  async activate(@Param('id') id: string, @CurrentUser() currentUser: any) {[m
+[32m+[m[32m  async activate([m
+[32m+[m[32m    @Param('id', ParseUUIDPipe) id: string,[m
+[32m+[m[32m    @CurrentUser() currentUser: any,[m
+[32m+[m[32m  ) {[m
+     return this.usersService.activate(id, currentUser.id);[m
+   }[m
+ [m
+   @Patch(':id/deactivate')[m
+[31m-  async deactivate(@Param('id') id: string, @CurrentUser() currentUser: any) {[m
+[32m+[m[32m  async deactivate([m
+[32m+[m[32m    @Param('id', ParseUUIDPipe) id: string,[m
+[32m+[m[32m    @CurrentUser() currentUser: any,[m
+[32m+[m[32m  ) {[m
+     return this.usersService.deactivate(id, currentUser.id);[m
+   }[m
+[31m-} [m
+\ No newline at end of file[m
+[32m+[m[32m}[m
+[1mdiff --git a/backend/src/users/users.service.ts b/backend/src/users/users.service.ts[m
+[1mindex 5dac863..1a261f9 100644[m
+[1m--- a/backend/src/users/users.service.ts[m
+[1m+++ b/backend/src/users/users.service.ts[m
+[36m@@ -2,6 +2,7 @@[m [mimport {[m
+   ConflictException,[m
+   Injectable,[m
+   NotFoundException,[m
+[32m+[m[32m  ForbiddenException,[m
+ } from '@nestjs/common';[m
+ import { PrismaService } from 'src/prisma/prisma.service';[m
+ import { UserRole } from '@prisma/client';[m
+[36m@@ -193,7 +194,13 @@[m [mexport class UsersService {[m
+     return user;[m
+   }[m
+ [m
+[31m-  async update(id: string, updateUserDto: UpdateUserDto, currentUserId: string) {[m
+[32m+[m[32m  async update([m
+[32m+[m[32m    id: string,[m
+[32m+[m[32m    updateUserDto: UpdateUserDto,[m
+[32m+[m[32m    currentUserId: string,[m
+[32m+[m[32m  ) {[m
+[32m+[m[32m    await this.validateSuperAdminPromotion(updateUserDto.role, currentUserId);[m
+[32m+[m
+     const user = await this.prisma.user.findUnique({[m
+       where: { id },[m
+     });[m
+[36m@@ -342,4 +349,22 @@[m [mexport class UsersService {[m
+       user: updatedUser,[m
+     };[m
+   }[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m
+[32m+[m[32m  private async validateSuperAdminPromotion([m
+[32m+[m[32m    requestedRole?: UserRole,[m
+[32m+[m[32m    currentUserId?: string,[m
+[32m+[m[32m  ) {[m
+[32m+[m[32m    if (requestedRole === UserRole.SUPER_ADMIN && currentUserId) {[m
+[32m+[m[32m      const callingUser = await this.prisma.user.findUnique({[m
+[32m+[m[32m        where: { id: currentUserId },[m
+[32m+[m[32m        select: { role: true },[m
+[32m+[m[32m      });[m
+[32m+[m
+[32m+[m[32m      if (callingUser?.role !== UserRole.SUPER_ADMIN) {[m
+[32m+[m[32m        throw new ForbiddenException([m
+[32m+[m[32m          'Only a Super Admin can grant Super Admin privileges',[m
+[32m+[m[32m        );[m
+[32m+[m[32m      }[m
+[32m+[m[32m    }[m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[1mdiff --git a/frontend/src/api/transactions.ts b/frontend/src/api/transactions.ts[m
+[1mindex d59fbb8..8e3d9e3 100644[m
+[1m--- a/frontend/src/api/transactions.ts[m
+[1m+++ b/frontend/src/api/transactions.ts[m
+[36m@@ -1,5 +1,10 @@[m
+[31m-import api from '../services/api-client';[m
+[31m-import { VerificationStatus, TradeType, type PaginatedResponse, type Transaction } from '../types';[m
+[32m+[m[32mimport api from "../services/api-client";[m
+[32m+[m[32mimport {[m
+[32m+[m[32m  VerificationStatus,[m
+[32m+[m[32m  TradeType,[m
+[32m+[m[32m  type PaginatedResponse,[m
+[32m+[m[32m  type Transaction,[m
+[32m+[m[32m} from "../types";[m
+ [m
+ export interface CreateTransactionData {[m
+   propertyId: string;[m
+[36m@@ -31,16 +36,21 @@[m [mexport interface SearchTransactionsParams {[m
+   search?: string;[m
+   status?: VerificationStatus;[m
+   tradeType?: TradeType;[m
+[32m+[m[32m  minPrice?: number;[m
+[32m+[m[32m  maxPrice?: number;[m
+   propertyId?: string;[m
+   agencyId?: string;[m
+   sortBy?: string;[m
+[31m-  sortOrder?: 'asc' | 'desc';[m
+[32m+[m[32m  sortOrder?: "asc" | "desc";[m
+ }[m
+ [m
+ export const transactionsApi = {[m
+   // Get all transactions with pagination and filters[m
+   getAll: async (params?: SearchTransactionsParams) => {[m
+[31m-    const response = await api.get<PaginatedResponse<Transaction>>('/transactions', { params });[m
+[32m+[m[32m    const response = await api.get<PaginatedResponse<Transaction>>([m
+[32m+[m[32m      "/transactions",[m
+[32m+[m[32m      { params },[m
+[32m+[m[32m    );[m
+     return response.data;[m
+   },[m
+ [m
+[36m@@ -52,25 +62,36 @@[m [mexport const transactionsApi = {[m
+ [m
+   // Create transaction[m
+   create: async (data: CreateTransactionData) => {[m
+[31m-    const response = await api.post<{ message: string; transaction: Transaction }>('/transactions', data);[m
+[32m+[m[32m    const response = await api.post<{[m
+[32m+[m[32m      message: string;[m
+[32m+[m[32m      transaction: Transaction;[m
+[32m+[m[32m    }>("/transactions", data);[m
+     return response.data;[m
+   },[m
+ [m
+   // Update transaction[m
+   update: async (id: string, data: UpdateTransactionData) => {[m
+[31m-    const response = await api.patch<{ message: string; transaction: Transaction }>(`/transactions/${id}`, data);[m
+[32m+[m[32m    const response = await api.patch<{[m
+[32m+[m[32m      message: string;[m
+[32m+[m[32m      transaction: Transaction;[m
+[32m+[m[32m    }>(`/transactions/${id}`, data);[m
+     return response.data;[m
+   },[m
+ [m
+   // Delete transaction[m
+   delete: async (id: string) => {[m
+[31m-    const response = await api.delete<{ message: string }>(`/transactions/${id}`);[m
+[32m+[m[32m    const response = await api.delete<{ message: string }>([m
+[32m+[m[32m      `/transactions/${id}`,[m
+[32m+[m[32m    );[m
+     return response.data;[m
+   },[m
+ [m
+   // Verify transaction (Inspector)[m
+   verify: async (id: string, data: VerifyTransactionData) => {[m
+[31m-    const response = await api.post<{ message: string; verification: any }>(`/transactions/${id}/verify`, data);[m
+[32m+[m[32m    const response = await api.post<{ message: string; verification: any }>([m
+[32m+[m[32m      `/transactions/${id}/verify`,[m
+[32m+[m[32m      data,[m
+[32m+[m[32m    );[m
+     return response.data;[m
+   },[m
+[31m-};[m
+\ No newline at end of file[m
+[32m+[m[32m};[m
+[1mdiff --git a/frontend/src/pages/properties/PropertyForm.tsx b/frontend/src/pages/properties/PropertyForm.tsx[m
+[1mindex 01cdaf7..97165c0 100644[m
+[1m--- a/frontend/src/pages/properties/PropertyForm.tsx[m
+[1m+++ b/frontend/src/pages/properties/PropertyForm.tsx[m
+[36m@@ -1,14 +1,14 @@[m
+[31m-import { useState, useEffect } from 'react';[m
+[31m-import { useNavigate, useParams } from 'react-router-dom';[m
+[31m-import MainLayout from '../../components/layout/MainLayout';[m
+[31m-import Card from '../../components/ui/Card';[m
+[31m-import Button from '../../components/ui/Button';[m
+[31m-import Input from '../../components/ui/Input';[m
+[31m-import { propertiesApi, type CreatePropertyData } from '../../api/properties';[m
+[31m-import { agenciesApi } from '../../api/agencies';[m
+[31m-import { ArrowLeft } from 'lucide-react';[m
+[31m-import { useAuthStore } from '../../stores/authStore';[m
+[31m-import { UserRole, type Agency } from '../../types';[m
+[32m+[m[32mimport { useState, useEffect } from "react";[m
+[32m+[m[32mimport { useNavigate, useParams } from "react-router-dom";[m
+[32m+[m[32mimport MainLayout from "../../components/layout/MainLayout";[m
+[32m+[m[32mimport Card from "../../components/ui/Card";[m
+[32m+[m[32mimport Button from "../../components/ui/Button";[m
+[32m+[m[32mimport Input from "../../components/ui/Input";[m
+[32m+[m[32mimport { propertiesApi, type CreatePropertyData } from "../../api/properties";[m
+[32m+[m[32mimport { agenciesApi } from "../../api/agencies";[m
+[32m+[m[32mimport { ArrowLeft, AlertCircle } from "lucide-react";[m
+[32m+[m[32mimport { useAuthStore } from "../../stores/authStore";[m
+[32m+[m[32mimport { UserRole, type Agency } from "../../types";[m
+ [m
+ const PropertyForm = () => {[m
+   const navigate = useNavigate();[m
+[36m@@ -19,11 +19,11 @@[m [mconst PropertyForm = () => {[m
+   const [loading, setLoading] = useState(false);[m
+   const [agencies, setAgencies] = useState<Agency[]>([]);[m
+   const [formData, setFormData] = useState<CreatePropertyData>({[m
+[31m-    title: '',[m
+[31m-    address: '',[m
+[31m-    region: '',[m
+[31m-    cadastralNo: '',[m
+[31m-    agencyId: user?.agencyId || '',[m
+[32m+[m[32m    title: "",[m
+[32m+[m[32m    address: "",[m
+[32m+[m[32m    region: "",[m
+[32m+[m[32m    cadastralNo: "",[m
+[32m+[m[32m    agencyId: user?.agencyId || "",[m
+   });[m
+   const [errors, setErrors] = useState<Record<string, string>>({});[m
+ [m
+[36m@@ -32,7 +32,7 @@[m [mconst PropertyForm = () => {[m
+     if (user?.role === UserRole.SUPER_ADMIN) {[m
+       fetchAgencies();[m
+     }[m
+[31m-    [m
+[32m+[m
+     if (isEdit && id) {[m
+       fetchProperty(id);[m
+     }[m
+[36m@@ -43,7 +43,7 @@[m [mconst PropertyForm = () => {[m
+       const response = await agenciesApi.getAll({ limit: 100 });[m
+       setAgencies(response.data);[m
+     } catch (error) {[m
+[31m-      console.error('Failed to fetch agencies:', error);[m
+[32m+[m[32m      console.error("Failed to fetch agencies:", error);[m
+     }[m
+   };[m
+ [m
+[36m@@ -54,11 +54,11 @@[m [mconst PropertyForm = () => {[m
+         title: property.title,[m
+         address: property.address,[m
+         region: property.region,[m
+[31m-        cadastralNo: property.cadastralNo || '',[m
+[32m+[m[32m        cadastralNo: property.cadastralNo || "",[m
+         agencyId: property.agencyId,[m
+       });[m
+     } catch (error) {[m
+[31m-      console.error('Failed to fetch property:', error);[m
+[32m+[m[32m      console.error("Failed to fetch property:", error);[m
+     }[m
+   };[m
+ [m
+[36m@@ -73,7 +73,7 @@[m [mconst PropertyForm = () => {[m
+       } else {[m
+         await propertiesApi.create(formData);[m
+       }[m
+[31m-      navigate('/properties');[m
+[32m+[m[32m      navigate("/properties");[m
+     } catch (error: any) {[m
+       if (error.response?.data?.message) {[m
+         setErrors({ general: error.response.data.message });[m
+[36m@@ -84,11 +84,11 @@[m [mconst PropertyForm = () => {[m
+   };[m
+ [m
+   return ([m
+[31m-    <MainLayout title={isEdit ? 'Edit Property' : 'Create Property'}>[m
+[32m+[m[32m    <MainLayout title={isEdit ? "Edit Property" : "Create Property"}>[m
+       <div className="p-6">[m
+         <Button[m
+           variant="secondary"[m
+[31m-          onClick={() => navigate('/properties')}[m
+[32m+[m[32m          onClick={() => navigate("/properties")}[m
+           className="mb-6"[m
+         >[m
+           <ArrowLeft className="w-4 h-4" />[m
+[36m@@ -107,7 +107,9 @@[m [mconst PropertyForm = () => {[m
+               label="Property Title"[m
+               type="text"[m
+               value={formData.title}[m
+[31m-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}[m
+[32m+[m[32m              onChange={(e) =>[m
+[32m+[m[32m                setFormData({ ...formData, title: e.target.value })[m
+[32m+[m[32m              }[m
+               error={errors.title}[m
+               placeholder="e.g., Villa in Wazir Akbar Khan"[m
+               required[m
+[36m@@ -117,7 +119,9 @@[m [mconst PropertyForm = () => {[m
+               label="Address"[m
+               type="text"[m
+               value={formData.address}[m
+[31m-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}[m
+[32m+[m[32m              onChange={(e) =>[m
+[32m+[m[32m                setFormData({ ...formData, address: e.target.value })[m
+[32m+[m[32m              }[m
+               error={errors.address}[m
+               placeholder="e.g., Street 15, House 234"[m
+               required[m
+[36m@@ -127,7 +131,9 @@[m [mconst PropertyForm = () => {[m
+               label="Region"[m
+               type="text"[m
+               value={formData.region}[m
+[31m-              onChange={(e) => setFormData({ ...formData, region: e.target.value })}[m
+[32m+[m[32m              onChange={(e) =>[m
+[32m+[m[32m                setFormData({ ...formData, region: e.target.value })[m
+[32m+[m[32m              }[m
+               error={errors.region}[m
+               placeholder="e.g., Kabul, Herat, Kandahar"[m
+               required[m
+[36m@@ -137,7 +143,9 @@[m [mconst PropertyForm = () => {[m
+               label="Cadastral Number (Optional)"[m
+               type="text"[m
+               value={formData.cadastralNo}[m
+[31m-              onChange={(e) => setFormData({ ...formData, cadastralNo: e.target.value })}[m
+[32m+[m[32m              onChange={(e) =>[m
+[32m+[m[32m                setFormData({ ...formData, cadastralNo: e.target.value })[m
+[32m+[m[32m              }[m
+               error={errors.cadastralNo}[m
+               placeholder="e.g., CAD-2024-001"[m
+             />[m
+[36m@@ -149,7 +157,9 @@[m [mconst PropertyForm = () => {[m
+                 </label>[m
+                 <select[m
+                   value={formData.agencyId}[m
+[31m-                  onChange={(e) => setFormData({ ...formData, agencyId: e.target.value })}[m
+[32m+[m[32m                  onChange={(e) =>[m
+[32m+[m[32m                    setFormData({ ...formData, agencyId: e.target.value })[m
+[32m+[m[32m                  }[m
+                   className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"[m
+                   required[m
+                 >[m
+[36m@@ -161,15 +171,32 @@[m [mconst PropertyForm = () => {[m
+                   ))}[m
+                 </select>[m
+                 {errors.agencyId && ([m
+[31m-                  <p className="mt-1 text-sm text-danger-600">{errors.agencyId}</p>[m
+[32m+[m[32m                  <p className="mt-1 text-sm text-danger-600">[m
+[32m+[m[32m                    {errors.agencyId}[m
+[32m+[m[32m                  </p>[m
+                 )}[m
+               </div>[m
+             )}[m
+ [m
+[32m+[m[32m            {isEdit && user?.role === UserRole.SUPER_ADMIN && ([m
+[32m+[m[32m              <div className="bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 text-warning-800 dark:text-warning-200 px-4 py-3 rounded-lg flex items-start gap-3">[m
+[32m+[m[32m                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />[m
+[32m+[m[32m                <div>[m
+[32m+[m[32m                  <p className="text-sm font-medium">Agency Transfer</p>[m
+[32m+[m[32m                  <p className="text-xs mt-1">[m
+[32m+[m[32m                    Changing the agency here will transfer ownership of this[m
+[32m+[m[32m                    property and all its related records to the newly selected[m
+[32m+[m[32m                    agency.[m
+[32m+[m[32m                  </p>[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            )}[m
+[32m+[m
+             {user?.role === UserRole.AGENCY_ADMIN && user.agency && ([m
+               <div className="bg-info-50 dark:bg-info-900/20 border border-info-200 dark:border-info-800 text-info-800 dark:text-info-200 px-4 py-3 rounded-lg">[m
+                 <p className="text-sm">[m
+[31m-                  This property will be registered under: <strong>{user.agency.name}</strong>[m
+[32m+[m[32m                  This property will be registered under:{" "}[m
+[32m+[m[32m                  <strong>{user.agency.name}</strong>[m
+                 </p>[m
+               </div>[m
+             )}[m
+[36m@@ -181,12 +208,12 @@[m [mconst PropertyForm = () => {[m
+                 isLoading={loading}[m
+                 className="flex-1"[m
+               >[m
+[31m-                {isEdit ? 'Update Property' : 'Create Property'}[m
+[32m+[m[32m                {isEdit ? "Update Property" : "Create Property"}[m
+               </Button>[m
+               <Button[m
+                 type="button"[m
+                 variant="secondary"[m
+[31m-                onClick={() => navigate('/properties')}[m
+[32m+[m[32m                onClick={() => navigate("/properties")}[m
+                 className="flex-1"[m
+               >[m
+                 Cancel[m
+[36m@@ -199,4 +226,4 @@[m [mconst PropertyForm = () => {[m
+   );[m
+ };[m
+ [m
+[31m-export default PropertyForm;[m
+\ No newline at end of file[m
+[32m+[m[32mexport default PropertyForm;[m
+[1mdiff --git a/frontend/src/pages/transactions/TransactionsList.tsx b/frontend/src/pages/transactions/TransactionsList.tsx[m
+[1mindex 4f03441..cfc7e35 100644[m
+[1m--- a/frontend/src/pages/transactions/TransactionsList.tsx[m
+[1m+++ b/frontend/src/pages/transactions/TransactionsList.tsx[m
+[36m@@ -38,6 +38,8 @@[m [mconst TransactionsList = () => {[m
+   const [search, setSearch] = useState("");[m
+   const [statusFilter, setStatusFilter] = useState<VerificationStatus | "">("");[m
+   const [tradeTypeFilter, setTradeTypeFilter] = useState<TradeType | "">("");[m
+[32m+[m[32m  const [minPrice, setMinPrice] = useState("");[m
+[32m+[m[32m  const [maxPrice, setMaxPrice] = useState("");[m
+   const [currentPage, setCurrentPage] = useState(1);[m
+   const [totalPages, setTotalPages] = useState(1);[m
+   const [total, setTotal] = useState(0);[m
+[36m@@ -54,7 +56,7 @@[m [mconst TransactionsList = () => {[m
+ [m
+   useEffect(() => {[m
+     fetchTransactions();[m
+[31m-  }, [search, statusFilter, tradeTypeFilter, currentPage]);[m
+[32m+[m[32m  }, [search, statusFilter, tradeTypeFilter, minPrice, maxPrice, currentPage]);[m
+ [m
+   const canCreate =[m
+     user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.AGENCY_ADMIN;[m
+[36m@@ -70,6 +72,8 @@[m [mconst TransactionsList = () => {[m
+       if (search) params.search = search;[m
+       if (statusFilter) params.status = statusFilter;[m
+       if (tradeTypeFilter) params.tradeType = tradeTypeFilter;[m
+[32m+[m[32m      if (minPrice) params.minPrice = Number(minPrice);[m
+[32m+[m[32m      if (maxPrice) params.maxPrice = Number(maxPrice);[m
+ [m
+       const response = await transactionsApi.getAll(params);[m
+       setTransactions(response.data);[m
+[36m@@ -268,6 +272,24 @@[m [mconst TransactionsList = () => {[m
+                   <option value={TradeType.TRANSFER}>Transfer</option>[m
+                 </select>[m
+ [m
+[32m+[m[32m                <div className="flex items-center gap-2">[m
+[32m+[m[32m                  <Input[m
+[32m+[m[32m                    type="number"[m
+[32m+[m[32m                    placeholder="Min Price"[m
+[32m+[m[32m                    value={minPrice}[m
+[32m+[m[32m                    onChange={(e) => setMinPrice(e.target.value)}[m
+[32m+[m[32m                    className="w-24"[m
+[32m+[m[32m                  />[m
+[32m+[m[32m                  <span className="text-secondary">-</span>[m
+[32m+[m[32m                  <Input[m
+[32m+[m[32m                    type="number"[m
+[32m+[m[32m                    placeholder="Max Price"[m
+[32m+[m[32m                    value={maxPrice}[m
+[32m+[m[32m                    onChange={(e) => setMaxPrice(e.target.value)}[m
+[32m+[m[32m                    className="w-24"[m
+[32m+[m[32m                  />[m
+[32m+[m[32m                </div>[m
+[32m+[m
+                 {canCreate && ([m
+                   <Button[m
+                     variant="primary"[m
+[1mdiff --git a/frontend/src/pages/users/UserForm.tsx b/frontend/src/pages/users/UserForm.tsx[m
+[1mindex 2a9e317..fe9767a 100644[m
+[1m--- a/frontend/src/pages/users/UserForm.tsx[m
+[1m+++ b/frontend/src/pages/users/UserForm.tsx[m
+[36m@@ -1,25 +1,27 @@[m
+[31m-import { useState, useEffect } from 'react';[m
+[31m-import { useNavigate, useParams } from 'react-router-dom';[m
+[31m-import MainLayout from '../../components/layout/MainLayout';[m
+[31m-import Card from '../../components/ui/Card';[m
+[31m-import Button from '../../components/ui/Button';[m
+[31m-import Input from '../../components/ui/Input';[m
+[31m-import { usersApi, type CreateUserData } from '../../api/users';[m
+[31m-import { agenciesApi } from '../../api/agencies';[m
+[31m-import { UserRole, Language, type Agency } from '../../types';[m
+[31m-import { ArrowLeft, AlertCircle } from 'lucide-react';[m
+[32m+[m[32mimport { useState, useEffect } from "react";[m
+[32m+[m[32mimport { useNavigate, useParams } from "react-router-dom";[m
+[32m+[m[32mimport MainLayout from "../../components/layout/MainLayout";[m
+[32m+[m[32mimport Card from "../../components/ui/Card";[m
+[32m+[m[32mimport Button from "../../components/ui/Button";[m
+[32m+[m[32mimport Input from "../../components/ui/Input";[m
+[32m+[m[32mimport { usersApi, type CreateUserData } from "../../api/users";[m
+[32m+[m[32mimport { agenciesApi } from "../../api/agencies";[m
+[32m+[m[32mimport { UserRole, Language, type Agency } from "../../types";[m
+[32m+[m[32mimport { ArrowLeft, AlertCircle } from "lucide-react";[m
+[32m+[m[32mimport { useAuthStore } from "../../stores/authStore";[m
+ [m
+ const UserForm = () => {[m
+   const navigate = useNavigate();[m
+   const { id } = useParams();[m
+[32m+[m[32m  const { user } = useAuthStore();[m
+   const isEdit = !!id;[m
+ [m
+   const [loading, setLoading] = useState(false);[m
+   const [agencies, setAgencies] = useState<Agency[]>([]);[m
+   const [formData, setFormData] = useState<CreateUserData>({[m
+[31m-    fullName: '',[m
+[31m-    email: '',[m
+[31m-    password: '',[m
+[32m+[m[32m    fullName: "",[m
+[32m+[m[32m    email: "",[m
+[32m+[m[32m    password: "",[m
+     role: UserRole.INSPECTOR,[m
+     language: Language.EN,[m
+     agencyId: undefined,[m
+[36m@@ -29,7 +31,7 @@[m [mconst UserForm = () => {[m
+ [m
+   useEffect(() => {[m
+     fetchAgencies();[m
+[31m-    [m
+[32m+[m
+     if (isEdit && id) {[m
+       fetchUser(id);[m
+     }[m
+[36m@@ -40,7 +42,7 @@[m [mconst UserForm = () => {[m
+       const response = await agenciesApi.getAll({ limit: 100 });[m
+       setAgencies(response.data);[m
+     } catch (error) {[m
+[31m-      console.error('Failed to fetch agencies:', error);[m
+[32m+[m[32m      console.error("Failed to fetch agencies:", error);[m
+     }[m
+   };[m
+ [m
+[36m@@ -50,14 +52,14 @@[m [mconst UserForm = () => {[m
+       setFormData({[m
+         fullName: user.fullName,[m
+         email: user.email,[m
+[31m-        password: '', // Don't populate password on edit[m
+[32m+[m[32m        password: "", // Don't populate password on edit[m
+         role: user.role,[m
+         language: user.language,[m
+         agencyId: user.agencyId || undefined,[m
+         isActive: user.isActive,[m
+       });[m
+     } catch (error) {[m
+[31m-      console.error('Failed to fetch user:', error);[m
+[32m+[m[32m      console.error("Failed to fetch user:", error);[m
+     }[m
+   };[m
+ [m
+[36m@@ -75,7 +77,7 @@[m [mconst UserForm = () => {[m
+       } else {[m
+         await usersApi.create(formData);[m
+       }[m
+[31m-      navigate('/users');[m
+[32m+[m[32m      navigate("/users");[m
+     } catch (error: any) {[m
+       if (error.response?.data?.message) {[m
+         setErrors({ general: error.response.data.message });[m
+[36m@@ -88,11 +90,11 @@[m [mconst UserForm = () => {[m
+   const requiresAgency = formData.role === UserRole.AGENCY_ADMIN;[m
+ [m
+   return ([m
+[31m-    <MainLayout title={isEdit ? 'Edit User' : 'Create User'}>[m
+[32m+[m[32m    <MainLayout title={isEdit ? "Edit User" : "Create User"}>[m
+       <div className="p-6">[m
+         <Button[m
+           variant="secondary"[m
+[31m-          onClick={() => navigate('/users')}[m
+[32m+[m[32m          onClick={() => navigate("/users")}[m
+           className="mb-6"[m
+         >[m
+           <ArrowLeft className="w-4 h-4" />[m
+[36m@@ -112,7 +114,9 @@[m [mconst UserForm = () => {[m
+                 label="Full Name"[m
+                 type="text"[m
+                 value={formData.fullName}[m
+[31m-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}[m
+[32m+[m[32m                onChange={(e) =>[m
+[32m+[m[32m                  setFormData({ ...formData, fullName: e.target.value })[m
+[32m+[m[32m                }[m
+                 error={errors.fullName}[m
+                 required[m
+               />[m
+[36m@@ -121,7 +125,9 @@[m [mconst UserForm = () => {[m
+                 label="Email"[m
+                 type="email"[m
+                 value={formData.email}[m
+[31m-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}[m
+[32m+[m[32m                onChange={(e) =>[m
+[32m+[m[32m                  setFormData({ ...formData, email: e.target.value })[m
+[32m+[m[32m                }[m
+                 error={errors.email}[m
+                 required[m
+               />[m
+[36m@@ -132,7 +138,9 @@[m [mconst UserForm = () => {[m
+                     label="Password"[m
+                     type="password"[m
+                     value={formData.password}[m
+[31m-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}[m
+[32m+[m[32m                    onChange={(e) =>[m
+[32m+[m[32m                      setFormData({ ...formData, password: e.target.value })[m
+[32m+[m[32m                    }[m
+                     error={errors.password}[m
+                     required[m
+                     placeholder="Minimum 8 characters"[m
+[36m@@ -146,11 +154,18 @@[m [mconst UserForm = () => {[m
+                 </label>[m
+                 <select[m
+                   value={formData.role}[m
+[31m-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}[m
+[32m+[m[32m                  onChange={(e) =>[m
+[32m+[m[32m                    setFormData({[m
+[32m+[m[32m                      ...formData,[m
+[32m+[m[32m                      role: e.target.value as UserRole,[m
+[32m+[m[32m                    })[m
+[32m+[m[32m                  }[m
+                   className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"[m
+                   required[m
+                 >[m
+[31m-                  <option value={UserRole.SUPER_ADMIN}>Super Admin</option>[m
+[32m+[m[32m                  {user?.role === UserRole.SUPER_ADMIN && ([m
+[32m+[m[32m                    <option value={UserRole.SUPER_ADMIN}>Super Admin</option>[m
+[32m+[m[32m                  )}[m
+                   <option value={UserRole.AGENCY_ADMIN}>Agency Admin</option>[m
+                   <option value={UserRole.INSPECTOR}>Inspector</option>[m
+                 </select>[m
+[36m@@ -162,7 +177,12 @@[m [mconst UserForm = () => {[m
+                 </label>[m
+                 <select[m
+                   value={formData.language}[m
+[31m-                  onChange={(e) => setFormData({ ...formData, language: e.target.value as Language })}[m
+[32m+[m[32m                  onChange={(e) =>[m
+[32m+[m[32m                    setFormData({[m
+[32m+[m[32m                      ...formData,[m
+[32m+[m[32m                      language: e.target.value as Language,[m
+[32m+[m[32m                    })[m
+[32m+[m[32m                  }[m
+                   className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"[m
+                   required[m
+                 >[m
+[36m@@ -178,8 +198,13 @@[m [mconst UserForm = () => {[m
+                     Agency <span className="text-danger-600">*</span>[m
+                   </label>[m
+                   <select[m
+[31m-                    value={formData.agencyId || ''}[m
+[31m-                    onChange={(e) => setFormData({ ...formData, agencyId: e.target.value || undefined })}[m
+[32m+[m[32m                    value={formData.agencyId || ""}[m
+[32m+[m[32m                    onChange={(e) =>[m
+[32m+[m[32m                      setFormData({[m
+[32m+[m[32m                        ...formData,[m
+[32m+[m[32m                        agencyId: e.target.value || undefined,[m
+[32m+[m[32m                      })[m
+[32m+[m[32m                    }[m
+                     className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"[m
+                     required={requiresAgency}[m
+                   >[m
+[36m@@ -191,7 +216,9 @@[m [mconst UserForm = () => {[m
+                     ))}[m
+                   </select>[m
+                   {errors.agencyId && ([m
+[31m-                    <p className="mt-1 text-sm text-danger-600">{errors.agencyId}</p>[m
+[32m+[m[32m                    <p className="mt-1 text-sm text-danger-600">[m
+[32m+[m[32m                      {errors.agencyId}[m
+[32m+[m[32m                    </p>[m
+                   )}[m
+                 </div>[m
+               )}[m
+[36m@@ -201,10 +228,14 @@[m [mconst UserForm = () => {[m
+                   <input[m
+                     type="checkbox"[m
+                     checked={formData.isActive}[m
+[31m-                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}[m
+[32m+[m[32m                    onChange={(e) =>[m
+[32m+[m[32m                      setFormData({ ...formData, isActive: e.target.checked })[m
+[32m+[m[32m                    }[m
+                     className="w-4 h-4 text-primary-600 bg-base border-primary rounded focus:ring-2 focus:ring-primary-500"[m
+                   />[m
+[31m-                  <span className="text-sm font-medium text-primary">Active User</span>[m
+[32m+[m[32m                  <span className="text-sm font-medium text-primary">[m
+[32m+[m[32m                    Active User[m
+[32m+[m[32m                  </span>[m
+                 </label>[m
+                 <p className="text-xs text-secondary mt-1">[m
+                   Inactive users cannot log in to the system[m
+[36m@@ -217,7 +248,9 @@[m [mconst UserForm = () => {[m
+                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />[m
+                 <div>[m
+                   <p className="text-sm font-medium">Agency Required</p>[m
+[31m-                  <p className="text-xs mt-1">Agency Admin users must be assigned to an agency.</p>[m
+[32m+[m[32m                  <p className="text-xs mt-1">[m
+[32m+[m[32m                    Agency Admin users must be assigned to an agency.[m
+[32m+[m[32m                  </p>[m
+                 </div>[m
+               </div>[m
+             )}[m
+[36m@@ -229,12 +262,12 @@[m [mconst UserForm = () => {[m
+                 isLoading={loading}[m
+                 className="flex-1"[m
+               >[m
+[31m-                {isEdit ? 'Update User' : 'Create User'}[m
+[32m+[m[32m                {isEdit ? "Update User" : "Create User"}[m
+               </Button>[m
+               <Button[m
+                 type="button"[m
+                 variant="secondary"[m
+[31m-                onClick={() => navigate('/users')}[m
+[32m+[m[32m                onClick={() => navigate("/users")}[m
+                 className="flex-1"[m
+               >[m
+                 Cancel[m
+[36m@@ -247,4 +280,4 @@[m [mconst UserForm = () => {[m
+   );[m
+ };[m
+ [m
+[31m-export default UserForm;[m
+\ No newline at end of file[m
+[32m+[m[32mexport default UserForm;[m

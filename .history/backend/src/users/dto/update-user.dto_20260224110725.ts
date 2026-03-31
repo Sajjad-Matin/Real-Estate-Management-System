@@ -9,7 +9,6 @@ import {
 } from 'class-validator';
 
 export class UpdateUserDto {
-  /** Optional full name for the user */
   @IsString()
   @IsOptional()
   fullName?: string;

@@ -8,7 +8,6 @@ import * as bcrypt from 'bcrypt';
 // Example: import { EmailService } from 'src/email/email.service';
 // Update the import path below if the actual file location is different
 import { EmailService } from 'src/common/services/email.service';
-import { AuditService } from 'src/common/services/audit.service';
 // import { AuditService } from '../audit/audit.service';
 // import { AuditService } from 'src/audit/audit.service';
 // Update the import path below to the correct relative path if needed

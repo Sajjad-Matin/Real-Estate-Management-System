@@ -120,8 +120,6 @@ export class TransactionsService {
       tradeType,
       propertyId,
       agencyId,
-      minPrice,
-      maxPrice,
     } = searchDto;
 
     // Build where clause
@@ -134,7 +132,7 @@ export class TransactionsService {
       where.status = VerificationStatus.PENDING;
     }
 
-    if (status && currentUser.role !== UserRole.INSPECTOR) {
+    if (status) {
       where.status = status;
     }
 
@@ -148,12 +146,6 @@ export class TransactionsService {
 
     if (agencyId) {
       where.agencyId = agencyId;
-    }
-
-    if (minPrice !== undefined || maxPrice !== undefined) {
-      where.price = {};
-      if (minPrice !== undefined) where.price.gte = minPrice;
-      if (maxPrice !== undefined) where.price.lte = maxPrice;
     }
 
     if (search) {

@@ -199,7 +199,16 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
     currentUserId: string,
   ) {
-    await this.validateSuperAdminPromotion(updateUserDto.role, currentUserId);
+    if (updateUserDto.role === UserRole.SUPER_ADMIN) {
+      const callingUser = await this.prisma.user.findUnique({
+        where: { id: currentUserId },
+      });
+      if (callingUser?.role !== UserRole.SUPER_ADMIN) {
+        throw new ForbiddenException(
+          'Only a Super Admin can grant Super Admin privileges',
+        );
+      }
+    }
 
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -348,23 +357,5 @@ export class UsersService {
       message: 'User activated successfully',
       user: updatedUser,
     };
-  }
-
-  private async validateSuperAdminPromotion(
-    requestedRole?: UserRole,
-    currentUserId?: string,
-  ) {
-    if (requestedRole === UserRole.SUPER_ADMIN && currentUserId) {
-      const callingUser = await this.prisma.user.findUnique({
-        where: { id: currentUserId },
-        select: { role: true },
-      });
-
-      if (callingUser?.role !== UserRole.SUPER_ADMIN) {
-        throw new ForbiddenException(
-          'Only a Super Admin can grant Super Admin privileges',
-        );
-      }
-    }
   }
 }

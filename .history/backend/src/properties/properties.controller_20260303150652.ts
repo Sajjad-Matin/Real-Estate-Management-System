@@ -8,14 +8,9 @@ import {
   Delete,
   UseGuards,
   Query,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { PropertiesService } from './properties.service';
-import {
-  CreatePropertyDto,
-  SearchPropertiesDto,
-  UpdatePropertyDto,
-} from './dto';
+import { CreatePropertyDto, SearchPropertiesDto, UpdatePropertyDto } from './dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { UserRole } from '@prisma/client';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
@@ -54,7 +49,7 @@ export class PropertiesController {
   @Patch(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.AGENCY_ADMIN)
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @Body() updatePropertyDto: UpdatePropertyDto,
     @CurrentUser() currentUser: any,
   ) {

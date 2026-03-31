@@ -1,27 +1,25 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import MainLayout from "../../components/layout/MainLayout";
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
-import { usersApi, type CreateUserData } from "../../api/users";
-import { agenciesApi } from "../../api/agencies";
-import { UserRole, Language, type Agency } from "../../types";
-import { ArrowLeft, AlertCircle } from "lucide-react";
-import { useAuthStore } from "../../stores/authStore";
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import MainLayout from '../../components/layout/MainLayout';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import { usersApi, type CreateUserData } from '../../api/users';
+import { agenciesApi } from '../../api/agencies';
+import { UserRole, Language, type Agency } from '../../types';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 
 const UserForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { user } = useAuthStore();
   const isEdit = !!id;
 
   const [loading, setLoading] = useState(false);
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [formData, setFormData] = useState<CreateUserData>({
-    fullName: "",
-    email: "",
-    password: "",
+    fullName: '',
+    email: '',
+    password: '',
     role: UserRole.INSPECTOR,
     language: Language.EN,
     agencyId: undefined,
@@ -31,7 +29,7 @@ const UserForm = () => {
 
   useEffect(() => {
     fetchAgencies();
-
+    
     if (isEdit && id) {
       fetchUser(id);
     }
@@ -42,7 +40,7 @@ const UserForm = () => {
       const response = await agenciesApi.getAll({ limit: 100 });
       setAgencies(response.data);
     } catch (error) {
-      console.error("Failed to fetch agencies:", error);
+      console.error('Failed to fetch agencies:', error);
     }
   };
 
@@ -52,14 +50,14 @@ const UserForm = () => {
       setFormData({
         fullName: user.fullName,
         email: user.email,
-        password: "", // Don't populate password on edit
+        password: '', // Don't populate password on edit
         role: user.role,
         language: user.language,
         agencyId: user.agencyId || undefined,
         isActive: user.isActive,
       });
     } catch (error) {
-      console.error("Failed to fetch user:", error);
+      console.error('Failed to fetch user:', error);
     }
   };
 
@@ -77,7 +75,7 @@ const UserForm = () => {
       } else {
         await usersApi.create(formData);
       }
-      navigate("/users");
+      navigate('/users');
     } catch (error: any) {
       if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
@@ -90,11 +88,11 @@ const UserForm = () => {
   const requiresAgency = formData.role === UserRole.AGENCY_ADMIN;
 
   return (
-    <MainLayout title={isEdit ? "Edit User" : "Create User"}>
+    <MainLayout title={isEdit ? 'Edit User' : 'Create User'}>
       <div className="p-6">
         <Button
           variant="secondary"
-          onClick={() => navigate("/users")}
+          onClick={() => navigate('/users')}
           className="mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -114,9 +112,7 @@ const UserForm = () => {
                 label="Full Name"
                 type="text"
                 value={formData.fullName}
-                onChange={(e) =>
-                  setFormData({ ...formData, fullName: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 error={errors.fullName}
                 required
               />
@@ -125,9 +121,7 @@ const UserForm = () => {
                 label="Email"
                 type="email"
                 value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 error={errors.email}
                 required
               />
@@ -138,9 +132,7 @@ const UserForm = () => {
                     label="Password"
                     type="password"
                     value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     error={errors.password}
                     required
                     placeholder="Minimum 8 characters"
@@ -154,18 +146,11 @@ const UserForm = () => {
                 </label>
                 <select
                   value={formData.role}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      role: e.target.value as UserRole,
-                    })
-                  }
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
                   className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   required
                 >
-                  {user?.role === UserRole.SUPER_ADMIN && (
-                    <option value={UserRole.SUPER_ADMIN}>Super Admin</option>
-                  )}
+                  <option value={UserRole.SUPER_ADMIN}>Super Admin</option>
                   <option value={UserRole.AGENCY_ADMIN}>Agency Admin</option>
                   <option value={UserRole.INSPECTOR}>Inspector</option>
                 </select>
@@ -177,12 +162,7 @@ const UserForm = () => {
                 </label>
                 <select
                   value={formData.language}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      language: e.target.value as Language,
-                    })
-                  }
+                  onChange={(e) => setFormData({ ...formData, language: e.target.value as Language })}
                   className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   required
                 >
@@ -198,13 +178,8 @@ const UserForm = () => {
                     Agency <span className="text-danger-600">*</span>
                   </label>
                   <select
-                    value={formData.agencyId || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        agencyId: e.target.value || undefined,
-                      })
-                    }
+                    value={formData.agencyId || ''}
+                    onChange={(e) => setFormData({ ...formData, agencyId: e.target.value || undefined })}
                     className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     required={requiresAgency}
                   >
@@ -216,9 +191,7 @@ const UserForm = () => {
                     ))}
                   </select>
                   {errors.agencyId && (
-                    <p className="mt-1 text-sm text-danger-600">
-                      {errors.agencyId}
-                    </p>
+                    <p className="mt-1 text-sm text-danger-600">{errors.agencyId}</p>
                   )}
                 </div>
               )}
@@ -228,14 +201,10 @@ const UserForm = () => {
                   <input
                     type="checkbox"
                     checked={formData.isActive}
-                    onChange={(e) =>
-                      setFormData({ ...formData, isActive: e.target.checked })
-                    }
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                     className="w-4 h-4 text-primary-600 bg-base border-primary rounded focus:ring-2 focus:ring-primary-500"
                   />
-                  <span className="text-sm font-medium text-primary">
-                    Active User
-                  </span>
+                  <span className="text-sm font-medium text-primary">Active User</span>
                 </label>
                 <p className="text-xs text-secondary mt-1">
                   Inactive users cannot log in to the system
@@ -248,9 +217,7 @@ const UserForm = () => {
                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Agency Required</p>
-                  <p className="text-xs mt-1">
-                    Agency Admin users must be assigned to an agency.
-                  </p>
+                  <p className="text-xs mt-1">Agency Admin users must be assigned to an agency.</p>
                 </div>
               </div>
             )}
@@ -262,12 +229,12 @@ const UserForm = () => {
                 isLoading={loading}
                 className="flex-1"
               >
-                {isEdit ? "Update User" : "Create User"}
+                {isEdit ? 'Update User' : 'Create User'}
               </Button>
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => navigate("/users")}
+                onClick={() => navigate('/users')}
                 className="flex-1"
               >
                 Cancel
