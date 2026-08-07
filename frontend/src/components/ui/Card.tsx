@@ -9,7 +9,7 @@ interface CardProps {
 const Card: FC<CardProps> = ({ children, className = '', onClick }) => {
   return (
     <div 
-      className={`bg-base border border-primary rounded-lg shadow-sm p-6 ${className}`}
+      className={`bg-white/20 backdrop-blur-xl border border-primary rounded-lg shadow-sm p-6 ${className}`}
       onClick={onClick} // ✅ Add this
     >
       {children}

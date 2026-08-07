@@ -74,14 +74,14 @@ const Login = () => {
 
   return (
     // TODO: Improve login UI and multilingual functionality
-    <div className="min-h-screen bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center p-4">
+    <div className="min-h-screen w-full bg-cover bg-center bg-[url('./assets/loginbg.png')] flex items-center justify-center p-4">
       {/* Language Switcher */}
       <div className="absolute top-4 right-4">
         <LanguageSwitcher />
       </div>
 
-      <Card className="max-w-md w-full">
-        <div className="text-center mb-8">
+      <Card className="max-w-md w-full ">
+        <div className="text-center mb-8 ">
           <h1 className="text-3xl font-bold text-primary mb-2">
             {t('auth.welcomeBack')}
           </h1>
