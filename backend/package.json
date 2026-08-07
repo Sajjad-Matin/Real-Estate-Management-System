@@ -22,6 +22,15 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:reset": "prisma migrate reset"
   },
+  "dependencies": {
+    "@nestjs/common": "^11.1.17",
+    "@nestjs/core": "^11.1.17",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.0",
+    "@nestjs/mapped-types": "^2.0.0",
+    "passport": "^0.6.0",
+    "passport-jwt": "^4.0.0"
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
