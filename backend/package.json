@@ -29,6 +29,7 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/mapped-types": "^2.0.0",
     "@nestjs/passport": "^11.0.0",
+    "@nestjs/platform-express": "^11.1.28",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
