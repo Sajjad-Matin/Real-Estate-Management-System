@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = "https://real-estate-management-system-wt9t.vercel.app";
+const API_URL = "https://real-estate-management-system-wt9t.vercel.app/api";
 
 const api = axios.create({
   baseURL: API_URL,
