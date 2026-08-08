@@ -6,7 +6,7 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { agenciesApi } from '../../api/agencies';
-import { AgencyStatus, type Agency } from '../../types';
+import {type AgencyStatus, type Agency } from '../../types';
 import { ArrowLeft, Edit, Trash2, Ban, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -68,11 +68,11 @@ const AgencyDetails = () => {
 
   const getStatusBadge = (status: AgencyStatus) => {
     switch (status) {
-      case AgencyStatus.ACTIVE:
+      case "ACTIVE" as AgencyStatus:
         return <Badge variant="success">Active</Badge>;
-      case AgencyStatus.CLOSED:
+      case "CLOSED" as AgencyStatus:
         return <Badge variant="warning">Closed</Badge>;
-      case AgencyStatus.BANNED:
+      case "BANNED" as AgencyStatus:
         return <Badge variant="danger">Banned</Badge>;
     }
   };
@@ -112,7 +112,7 @@ const AgencyDetails = () => {
           </Button>
 
           <div className="flex gap-3">
-            {agency.status === AgencyStatus.ACTIVE && (
+            {agency.status === "ACTIVE" as AgencyStatus && (
               <>
                 <Button
                   variant="warning"
@@ -133,7 +133,7 @@ const AgencyDetails = () => {
               </>
             )}
 
-            {agency.status !== AgencyStatus.ACTIVE && (
+            {agency.status !== "ACTIVE" as AgencyStatus && (
               <Button
                 variant="success"
                 onClick={() => handleStatusChange('activate')}

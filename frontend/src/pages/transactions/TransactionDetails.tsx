@@ -7,8 +7,8 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
 import { transactionsApi } from '../../api/transactions';
-import { VerificationStatus, UserRole, type Transaction } from '../../types';
-import { ArrowLeft, Edit, Trash2, CheckCircle, XCircle, MapPin, Building2, FileText, User, DollarSign } from 'lucide-react';
+import { type VerificationStatus, type Transaction, type UserRole } from '../../types';
+import { ArrowLeft, Edit, Trash2, CheckCircle, XCircle, MapPin, Building2, FileText, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -20,7 +20,7 @@ const TransactionDetails = () => {
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [verifyStatus, setVerifyStatus] = useState<VerificationStatus>(VerificationStatus.APPROVED);
+  const [verifyStatus, setVerifyStatus] = useState<VerificationStatus>('APPROVED' as VerificationStatus);
   const [remarks, setRemarks] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -75,27 +75,27 @@ const TransactionDetails = () => {
   };
 
   const canEdit = () => {
-    if (transaction?.status !== VerificationStatus.PENDING) return false;
-    if (user?.role === UserRole.SUPER_ADMIN) return true;
-    if (user?.role === UserRole.AGENCY_ADMIN && transaction?.agencyId === user.agencyId) return true;
+    if (transaction?.status !== "PENDING" as VerificationStatus) return false;
+    if (user?.role === "SUPER_ADMIN" as UserRole) return true;
+    if (user?.role === "AGENCY_ADMIN" as UserRole && transaction?.agencyId === user.agencyId) return true;
     return false;
   };
-
+  
   const canDelete = () => {
-    return user?.role === UserRole.SUPER_ADMIN;
+    return user?.role === "SUPER_ADMIN" as UserRole;
   };
 
   const canVerify = () => {
-    return user?.role === UserRole.INSPECTOR && transaction?.status === VerificationStatus.PENDING;
+    return user?.role === "INSPECTOR" as UserRole && transaction?.status === "PENDING" as VerificationStatus;
   };
 
   const getStatusBadge = (status: VerificationStatus) => {
     switch (status) {
-      case VerificationStatus.APPROVED:
+      case "APPROVED" as VerificationStatus:
         return <Badge variant="success">Approved</Badge>;
-      case VerificationStatus.PENDING:
+      case "PENDING" as VerificationStatus:
         return <Badge variant="warning">Pending Verification</Badge>;
-      case VerificationStatus.REJECTED:
+      case "REJECTED" as VerificationStatus:
         return <Badge variant="danger">Rejected</Badge>;
     }
   };
@@ -147,7 +147,7 @@ const TransactionDetails = () => {
                 <Button
                   variant="success"
                   onClick={() => {
-                    setVerifyStatus(VerificationStatus.APPROVED);
+                    setVerifyStatus("APPROVED" as VerificationStatus);
                     setShowVerifyModal(true);
                   }}
                 >
@@ -157,7 +157,7 @@ const TransactionDetails = () => {
                 <Button
                   variant="danger"
                   onClick={() => {
-                    setVerifyStatus(VerificationStatus.REJECTED);
+                    setVerifyStatus("REJECTED" as VerificationStatus);
                     setShowVerifyModal(true);
                   }}
                 >
@@ -365,11 +365,11 @@ const TransactionDetails = () => {
       <Modal
         isOpen={showVerifyModal}
         onClose={() => setShowVerifyModal(false)}
-        title={verifyStatus === VerificationStatus.APPROVED ? 'Approve Transaction' : 'Reject Transaction'}
+        title={verifyStatus === "APPORVED" as VerificationStatus ? 'Approve Transaction' : 'Reject Transaction'}
       >
         <div className="space-y-4">
           <p className="text-secondary">
-            {verifyStatus === VerificationStatus.APPROVED
+            {verifyStatus === "APPROVED" as VerificationStatus
               ? 'Are you sure you want to approve this transaction?'
               : 'Are you sure you want to reject this transaction?'}
           </p>
@@ -384,12 +384,12 @@ const TransactionDetails = () => {
 
           <div className="flex gap-3">
             <Button
-              variant={verifyStatus === VerificationStatus.APPROVED ? 'success' : 'danger'}
+              variant={verifyStatus === "APPROVED" as VerificationStatus ? 'success' : 'danger'}
               onClick={handleVerify}
               isLoading={actionLoading}
               className="flex-1"
             >
-              {verifyStatus === VerificationStatus.APPROVED ? 'Approve' : 'Reject'}
+              {verifyStatus === "APPROVED" as VerificationStatus ? 'Approve' : 'Reject'}
             </Button>
             <Button
               variant="secondary"

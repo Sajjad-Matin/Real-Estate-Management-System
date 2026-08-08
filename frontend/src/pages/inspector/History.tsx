@@ -7,7 +7,7 @@ import Badge from '../../components/ui/Badge';
 import Input from '../../components/ui/Input';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/Table';
 import { transactionsApi } from '../../api/transactions';
-import {  VerificationStatus, type Transaction } from '../../types';
+import {  type VerificationStatus, type Transaction } from '../../types';
 import { Search, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -38,7 +38,7 @@ const History = () => {
 
       // Filter out pending transactions (only show verified ones)
       const verifiedTransactions = response.data.filter(
-        (t) => t.status !== VerificationStatus.PENDING
+        (t) => t.status !== "PENDING" as VerificationStatus
       );
 
       setTransactions(verifiedTransactions);
@@ -52,17 +52,17 @@ const History = () => {
 
   const getStatusBadge = (status: VerificationStatus) => {
     switch (status) {
-      case VerificationStatus.APPROVED:
+      case "APPROVED" as VerificationStatus:
         return <Badge variant="success">Approved</Badge>;
-      case VerificationStatus.REJECTED:
+      case "REJECTED" as VerificationStatus:
         return <Badge variant="danger">Rejected</Badge>;
       default:
         return null;
     }
   };
 
-  const approvedCount = transactions.filter((t) => t.status === VerificationStatus.APPROVED).length;
-  const rejectedCount = transactions.filter((t) => t.status === VerificationStatus.REJECTED).length;
+  const approvedCount = transactions.filter((t) => t.status === "APPROVED" as VerificationStatus).length;
+  const rejectedCount = transactions.filter((t) => t.status === "REJECTED" as VerificationStatus).length;
 
   return (
     <MainLayout title="Verification History" subtitle="View your verification activity">
@@ -128,8 +128,8 @@ const History = () => {
               className="px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">All Verified</option>
-              <option value={VerificationStatus.APPROVED}>Approved Only</option>
-              <option value={VerificationStatus.REJECTED}>Rejected Only</option>
+              <option value={("APPROVED" as VerificationStatus)}>Approved Only</option>
+              <option value={("REJECTED" as VerificationStatus)}>Rejected Only</option>
             </select>
           </div>
         </Card>

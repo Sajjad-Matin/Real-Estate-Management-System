@@ -6,7 +6,6 @@ import AgencyForm from "./pages/agencies/AgencyForm";
 import AgencyDetails from "./pages/agencies/AgencyDetails";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AuthProvider from "./components/auth/AuthProvider";
-import { UserRole } from "./types";
 import PropertiesList from "./pages/properties/PropertiesList";
 import PropertyForm from "./pages/properties/PropertyForm";
 import PropertyDetails from "./pages/properties/PropertyDetails";
@@ -21,6 +20,7 @@ import UsersList from "./pages/users/UsersList";
 import AuditLogList from "./pages/auditLog/AuditLogList";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
+import type { UserRole } from "./types";
 
 function App() {
   return (
@@ -41,7 +41,7 @@ function App() {
         <Route
           path="/agencies"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN" as UserRole]}>
               <AgenciesList />
             </ProtectedRoute>
           }
@@ -49,7 +49,7 @@ function App() {
         <Route
           path="/agencies/create"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN" as UserRole]}>
               <AgencyForm />
             </ProtectedRoute>
           }
@@ -57,7 +57,7 @@ function App() {
         <Route
           path="/agencies/:id"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN" as UserRole]}>
               <AgencyDetails />
             </ProtectedRoute>
           }
@@ -65,7 +65,7 @@ function App() {
         <Route
           path="/agencies/:id/edit"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN" as UserRole]}>
               <AgencyForm />
             </ProtectedRoute>
           }
@@ -78,9 +78,9 @@ function App() {
           element={
             <ProtectedRoute
               allowedRoles={[
-                UserRole.SUPER_ADMIN,
-                UserRole.AGENCY_ADMIN,
-                UserRole.INSPECTOR,
+                "SUPER_ADMIN" as UserRole,
+                "AGENCY_ADMIN" as UserRole,
+                "INSPECTOR" as UserRole,
               ]}
             >
               <PropertiesList />
@@ -91,7 +91,7 @@ function App() {
           path="/properties/create"
           element={
             <ProtectedRoute
-              allowedRoles={[UserRole.SUPER_ADMIN, UserRole.AGENCY_ADMIN]}
+              allowedRoles={["SUPER_ADMIN" as UserRole, "AGENCY_ADMIN" as UserRole]}
             >
               <PropertyForm />
             </ProtectedRoute>
@@ -102,9 +102,9 @@ function App() {
           element={
             <ProtectedRoute
               allowedRoles={[
-                UserRole.SUPER_ADMIN,
-                UserRole.AGENCY_ADMIN,
-                UserRole.INSPECTOR,
+                "SUPER_ADMIN" as UserRole,
+                "AGENCY_ADMIN" as UserRole,
+                "INSPECTOR" as UserRole,
               ]}
             >
               <PropertyDetails />
@@ -115,7 +115,7 @@ function App() {
           path="/properties/:id/edit"
           element={
             <ProtectedRoute
-              allowedRoles={[UserRole.SUPER_ADMIN, UserRole.AGENCY_ADMIN]}
+              allowedRoles={["SUPER_ADMIN" as UserRole, "AGENCY_ADMIN" as UserRole]}
             >
               <PropertyForm />
             </ProtectedRoute>
@@ -126,9 +126,9 @@ function App() {
           element={
             <ProtectedRoute
               allowedRoles={[
-                UserRole.SUPER_ADMIN,
-                UserRole.AGENCY_ADMIN,
-                UserRole.INSPECTOR,
+                "SUPER_ADMIN" as UserRole,
+                "AGENCY_ADMIN" as UserRole,
+                "INSPECTOR" as UserRole,
               ]}
             >
               <TransactionsList />
@@ -139,7 +139,7 @@ function App() {
           path="/transactions/create"
           element={
             <ProtectedRoute
-              allowedRoles={[UserRole.SUPER_ADMIN, UserRole.AGENCY_ADMIN]}
+              allowedRoles={["SUPER_ADMIN" as UserRole, "AGENCY_ADMIN" as UserRole]}
             >
               <TransactionForm />
             </ProtectedRoute>
@@ -150,9 +150,9 @@ function App() {
           element={
             <ProtectedRoute
               allowedRoles={[
-                UserRole.SUPER_ADMIN,
-                UserRole.AGENCY_ADMIN,
-                UserRole.INSPECTOR,
+                "SUPER_ADMIN" as UserRole,
+                "AGENCY_ADMIN" as UserRole,
+                "INSPECTOR" as UserRole,
               ]}
             >
               <TransactionDetails />
@@ -163,7 +163,7 @@ function App() {
           path="/transactions/:id/edit"
           element={
             <ProtectedRoute
-              allowedRoles={[UserRole.SUPER_ADMIN, UserRole.AGENCY_ADMIN]}
+              allowedRoles={["SUPER_ADMIN" as UserRole, "AGENCY_ADMIN" as UserRole]}
             >
               <TransactionForm />
             </ProtectedRoute>
@@ -172,7 +172,7 @@ function App() {
         <Route
           path="/verification-queue"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.INSPECTOR]}>
+            <ProtectedRoute allowedRoles={["INSPECTOR" as UserRole]}>
               <VerificationQueue />
             </ProtectedRoute>
           }
@@ -180,7 +180,7 @@ function App() {
         <Route
           path="/history"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.INSPECTOR]}>
+            <ProtectedRoute allowedRoles={["INSPECTOR" as UserRole]}>
               <History />
             </ProtectedRoute>
           }
@@ -188,7 +188,7 @@ function App() {
         <Route
           path="/users"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN" as UserRole]}>
               <UsersList />
             </ProtectedRoute>
           }
@@ -196,7 +196,7 @@ function App() {
         <Route
           path="/users/create"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN" as UserRole]}>
               <UserForm />
             </ProtectedRoute>
           }
@@ -204,7 +204,7 @@ function App() {
         <Route
           path="/users/:id"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN" as UserRole]}>
               <UserDetails />
             </ProtectedRoute>
           }
@@ -212,7 +212,7 @@ function App() {
         <Route
           path="/users/:id/edit"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN" as UserRole]}>
               <UserForm />
             </ProtectedRoute>
           }
@@ -220,7 +220,7 @@ function App() {
         <Route
           path="/audit-log"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN" as UserRole]}>
               <AuditLogList />
             </ProtectedRoute>
           }

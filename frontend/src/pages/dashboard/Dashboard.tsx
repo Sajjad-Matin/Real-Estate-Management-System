@@ -1,6 +1,6 @@
 import { useAuthStore } from '../../stores/authStore';
 import MainLayout from '../../components/layout/MainLayout';
-import { UserRole } from '../../types';
+import { type UserRole } from '../../types';
 import AgencyAdminDashboard from './AgencyAdminDashboard';
 import InspectorDashboard from './InspectorDashboard';
 import SuperAdminDashboard from './SuperAdminDashboard';
@@ -9,11 +9,11 @@ const Dashboard = () => {
 
   const renderDashboard = () => {
     switch (user?.role) {
-      case UserRole.SUPER_ADMIN:
+      case "SUPER_ADMIN" as UserRole:
         return <SuperAdminDashboard />;
-      case UserRole.AGENCY_ADMIN:
+      case "AGENCY_ADMIN" as UserRole:
         return <AgencyAdminDashboard />;
-      case UserRole.INSPECTOR:
+      case "INSPECTOR" as UserRole:
         return <InspectorDashboard />;
       default:
         return (

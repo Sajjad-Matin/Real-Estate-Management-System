@@ -6,7 +6,7 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { usersApi } from '../../api/users';
-import {  UserRole, type User } from '../../types';
+import {  type UserRole, type User } from '../../types';
 import { ArrowLeft, Edit, Trash2, UserCheck, UserX, Mail, Globe, Building2, ShieldCheck, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../stores/authStore';
@@ -71,11 +71,11 @@ const UserDetails = () => {
 
   const getRoleBadge = (role: UserRole) => {
     switch (role) {
-      case UserRole.SUPER_ADMIN:
+      case "SUPER_ADMIN" as UserRole:
         return <Badge variant="danger">Super Admin</Badge>;
-      case UserRole.AGENCY_ADMIN:
+      case "AGENCY_ADMIN" as UserRole:
         return <Badge variant="info">Agency Admin</Badge>;
-      case UserRole.INSPECTOR:
+      case "INSPECTOR" as UserRole:
         return <Badge variant="success">Inspector</Badge>;
     }
   };
@@ -90,11 +90,11 @@ const UserDetails = () => {
 
   const getRoleIcon = (role: UserRole) => {
     switch (role) {
-      case UserRole.SUPER_ADMIN:
+      case "SUPER_ADMIN" as UserRole:
         return <ShieldCheck className="w-8 h-8 text-danger-600" />;
-      case UserRole.AGENCY_ADMIN:
+      case "AGENCY_ADMIN" as UserRole:
         return <Building2 className="w-8 h-8 text-info-600" />;
-      case UserRole.INSPECTOR:
+      case "INSPECTOR" as UserRole:
         return <Eye className="w-8 h-8 text-success-600" />;
     }
   };
@@ -103,7 +103,7 @@ const UserDetails = () => {
     // Can't delete yourself
     if (currentUser?.id === user?.id) return false;
     // Can't delete other super admins
-    if (user?.role === UserRole.SUPER_ADMIN) return false;
+    if (user?.role === "SUPER_ADMIN" as UserRole) return false;
     return true;
   };
 
@@ -284,9 +284,9 @@ const UserDetails = () => {
               <h4 className="text-sm font-medium text-secondary mb-2">Access Level</h4>
               <div className="mt-2">{getRoleBadge(user.role)}</div>
               <p className="text-xs text-secondary mt-2">
-                {user.role === UserRole.SUPER_ADMIN && 'Full system access and control'}
-                {user.role === UserRole.AGENCY_ADMIN && 'Manage own agency, properties, and transactions'}
-                {user.role === UserRole.INSPECTOR && 'Verify transactions and view system data'}
+                {user.role === "SUPER_ADMIN" as UserRole && 'Full system access and control'}
+                {user.role === "AGENCY_ADMIN" as UserRole && 'Manage own agency, properties, and transactions'}
+                {user.role === "INSPECTOR" as UserRole && 'Verify transactions and view system data'}
               </p>
             </Card>
 

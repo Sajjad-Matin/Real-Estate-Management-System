@@ -1,32 +1,37 @@
-export enum UserRole {
-  SUPER_ADMIN = 'SUPER_ADMIN',
-  AGENCY_ADMIN = 'AGENCY_ADMIN',
-  INSPECTOR = 'INSPECTOR',
-}
+export const USER_ROLE = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  AGENCY_ADMIN: 'AGENCY_ADMIN',
+  INSPECTOR: 'INSPECTOR',
+} as const;
+export type UserRole = typeof USER_ROLE[keyof typeof USER_ROLE];
 
-export enum AgencyStatus {
-  ACTIVE = 'ACTIVE',
-  CLOSED = 'CLOSED',
-  BANNED = 'BANNED',
-}
+export const AGENCY_STATUS = {
+  ACTIVE: 'ACTIVE',
+  CLOSED: 'CLOSED',
+  BANNED: 'BANNED',
+} as const;
+export type AgencyStatus = typeof AGENCY_STATUS[keyof typeof AGENCY_STATUS];
 
-export enum VerificationStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-}
+export const VERIFICATION_STATUS = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+} as const;
+export type VerificationStatus = typeof VERIFICATION_STATUS[keyof typeof VERIFICATION_STATUS];
 
-export enum TradeType {
-  SALE = 'SALE',
-  RENT = 'RENT',
-  TRANSFER = 'TRANSFER',
-}
+export const TRADE_TYPE = {
+  SALE: 'SALE',
+  RENT: 'RENT',
+  TRANSFER: 'TRANSFER',
+} as const;
+export type TradeType = typeof TRADE_TYPE[keyof typeof TRADE_TYPE];
 
-export enum Language {
-  EN = 'EN',
-  FA = 'FA',
-  PS = 'PS',
-}
+export const LANGUAGE = {
+  EN: 'EN',
+  FA: 'FA',
+  PS: 'PS',
+} as const;
+export type Language = typeof LANGUAGE[keyof typeof LANGUAGE];
 
 export interface User {
   id: string;

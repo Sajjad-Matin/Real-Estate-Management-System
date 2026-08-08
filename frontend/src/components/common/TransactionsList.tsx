@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import MainLayout from '../../components/layout/MainLayout';
-import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import AdvancedFilters from '../../components/common/AdvancedFilters';
@@ -20,7 +19,7 @@ const TransactionsList = () => {
   const { user } = useAuthStore();
 
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Record<string, any>>({
     status: searchParams.get('status') || '',
@@ -32,7 +31,7 @@ const TransactionsList = () => {
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [, setTotalPages] = useState(1);
   const limit = 10;
 
   useEffect(() => {

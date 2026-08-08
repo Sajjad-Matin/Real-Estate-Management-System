@@ -5,7 +5,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { agenciesApi, type CreateAgencyData } from '../../api/agencies';
-import { AgencyStatus } from '../../types';
+import { type AgencyStatus } from '../../types';
 import { ArrowLeft } from 'lucide-react';
 
 const AgencyForm = () => {
@@ -19,7 +19,7 @@ const AgencyForm = () => {
     licenseNumber: '',
     address: '',
     region: '',
-    status: AgencyStatus.ACTIVE,
+    status: "ACTIVE" as AgencyStatus,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -131,9 +131,9 @@ const AgencyForm = () => {
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as AgencyStatus })}
                 className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
-                <option value={AgencyStatus.ACTIVE}>Active</option>
-                <option value={AgencyStatus.CLOSED}>Closed</option>
-                <option value={AgencyStatus.BANNED}>Banned</option>
+                <option value={("ACTIVE" as AgencyStatus)}>Active</option>
+                <option value={("CLOSED" as AgencyStatus)}>Closed</option>
+                <option value={("BANNED" as AgencyStatus)}>Banned</option>
               </select>
             </div>
 

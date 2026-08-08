@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import MainLayout from "../../components/layout/MainLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -19,7 +18,6 @@ import {
   type SearchAuditLogsParams,
 } from "../../api/auditLog";
 import {
-  Search,
   Filter,
   FileText,
   User,
@@ -32,7 +30,6 @@ import { exportToCSV, exportToExcel } from "../../utils/export";
 import ExportModal from "../../components/common/ExportModal";
 
 const AuditLogList = () => {
-  const navigate = useNavigate();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

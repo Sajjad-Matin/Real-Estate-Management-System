@@ -1,7 +1,7 @@
 import api from "../services/api-client";
 import {
-  VerificationStatus,
-  TradeType,
+  type VerificationStatus,
+  type TradeType,
   type PaginatedResponse,
   type Transaction,
 } from "../types";

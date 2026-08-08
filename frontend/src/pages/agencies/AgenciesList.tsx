@@ -16,9 +16,6 @@ import {
   Eye,
   Ban,
   Building2,
-  Users,
-  Home,
-  DollarSign,
 } from "lucide-react";
 import { format } from "date-fns";
 

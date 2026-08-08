@@ -14,7 +14,7 @@ import {
   TableCell,
 } from "../../components/ui/Table";
 import { usersApi, type SearchUsersParams } from "../../api/users";
-import { UserRole, type User } from "../../types";
+import { type UserRole, type User } from "../../types";
 import {
   Plus,
   Search,
@@ -76,11 +76,11 @@ const UsersList = () => {
 
   const getRoleBadge = (role: UserRole) => {
     switch (role) {
-      case UserRole.SUPER_ADMIN:
+      case "SUPER_ADMIN" as UserRole:
         return <Badge variant="danger">Super Admin</Badge>;
-      case UserRole.AGENCY_ADMIN:
+      case "AGENCY_ADMIN" as UserRole:
         return <Badge variant="info">Agency Admin</Badge>;
-      case UserRole.INSPECTOR:
+      case "INSPECTOR" as UserRole:
         return <Badge variant="success">Inspector</Badge>;
     }
   };
@@ -95,24 +95,24 @@ const UsersList = () => {
 
   const getRoleIcon = (role: UserRole) => {
     switch (role) {
-      case UserRole.SUPER_ADMIN:
+      case "SUPER_ADMIN" as UserRole:
         return <ShieldCheck className="w-5 h-5 text-danger-600" />;
-      case UserRole.AGENCY_ADMIN:
+      case "AGENCY_ADMIN" as UserRole:
         return <Building2 className="w-5 h-5 text-info-600" />;
-      case UserRole.INSPECTOR:
+      case "INSPECTOR" as UserRole:
         return <Eye className="w-5 h-5 text-success-600" />;
     }
   };
 
   // Count by role
   const superAdminCount = users.filter(
-    (u) => u.role === UserRole.SUPER_ADMIN,
+    (u) => u.role === "SUPER_ADMIN" as UserRole,
   ).length;
   const agencyAdminCount = users.filter(
-    (u) => u.role === UserRole.AGENCY_ADMIN,
+    (u) => u.role === "AGENCY_ADMIN" as UserRole,
   ).length;
   const inspectorCount = users.filter(
-    (u) => u.role === UserRole.INSPECTOR,
+    (u) => u.role === "INSPECTOR" as UserRole,
   ).length;
   const activeCount = users.filter((u) => u.isActive).length;
 
@@ -251,9 +251,9 @@ const UsersList = () => {
                   className="px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="">All Roles</option>
-                  <option value={UserRole.SUPER_ADMIN}>Super Admin</option>
-                  <option value={UserRole.AGENCY_ADMIN}>Agency Admin</option>
-                  <option value={UserRole.INSPECTOR}>Inspector</option>
+                  <option value={"SUPER_ADMIN" as UserRole}>Super Admin</option>
+                  <option value={"AGENCY_ADMIN" as UserRole}>Agency Admin</option>
+                  <option value={"INSPECTOR" as UserRole}>Inspector</option>
                 </select>
 
                 <select

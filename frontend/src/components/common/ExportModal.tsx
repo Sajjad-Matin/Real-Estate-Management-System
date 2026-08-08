@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
-import { Download, FileText, Table } from 'lucide-react';
+import { FileText, Table } from 'lucide-react';
 
 interface ExportModalProps {
   isOpen: boolean;

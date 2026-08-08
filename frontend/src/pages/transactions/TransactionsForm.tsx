@@ -7,7 +7,7 @@ import Input from '../../components/ui/Input';
 import { transactionsApi, type CreateTransactionData } from '../../api/transactions';
 import { propertiesApi } from '../../api/properties';
 import { agenciesApi } from '../../api/agencies';
-import { TradeType, UserRole, type Agency, type Property } from '../../types';
+import { type TradeType, type Agency, type Property, type UserRole } from '../../types';
 import { ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -23,7 +23,7 @@ const TransactionForm = () => {
   const [formData, setFormData] = useState<CreateTransactionData>({
     propertyId: '',
     agencyId: user?.agencyId || '',
-    tradeType: TradeType.SALE,
+    tradeType: "SALE" as TradeType,
     price: 0,
     buyerName: '',
     buyerIdNo: '',
@@ -34,7 +34,7 @@ const TransactionForm = () => {
 
   useEffect(() => {
     fetchProperties();
-    if (user?.role === UserRole.SUPER_ADMIN) {
+    if (user?.role === "SUPER_ADMIN" as UserRole) {
       fetchAgencies();
     }
     
@@ -152,9 +152,9 @@ const TransactionForm = () => {
                   className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   required
                 >
-                  <option value={TradeType.SALE}>Sale</option>
-                  <option value={TradeType.RENT}>Rent</option>
-                  <option value={TradeType.TRANSFER}>Transfer</option>
+                  <option value={"SALE" as TradeType}>Sale</option>
+                  <option value={"RENT" as TradeType}>Rent</option>
+                  <option value={"TRANSFER" as TradeType}>Transfer</option>
                 </select>
               </div>
 
@@ -209,7 +209,7 @@ const TransactionForm = () => {
               />
 
               {/* Agency (SUPER_ADMIN only) */}
-              {user?.role === UserRole.SUPER_ADMIN && (
+              {user?.role === "SUPER_ADMIN" as UserRole && (
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-primary mb-2">
                     Agency <span className="text-danger-600">*</span>
@@ -230,7 +230,7 @@ const TransactionForm = () => {
                 </div>
               )}
 
-              {user?.role === UserRole.AGENCY_ADMIN && user.agency && (
+              {user?.role === "AGENCY_ADMIN" as UserRole && user.agency && (
                 <div className="md:col-span-2 bg-info-50 dark:bg-info-900/20 border border-info-200 dark:border-info-800 text-info-800 dark:text-info-200 px-4 py-3 rounded-lg">
                   <p className="text-sm">
                     This transaction will be registered under: <strong>{user.agency.name}</strong>

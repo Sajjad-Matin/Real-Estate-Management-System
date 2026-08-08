@@ -8,7 +8,7 @@ import { propertiesApi, type CreatePropertyData } from "../../api/properties";
 import { agenciesApi } from "../../api/agencies";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
-import { UserRole, type Agency } from "../../types";
+import { type Agency } from "../../types";
 
 const PropertyForm = () => {
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ const PropertyForm = () => {
 
   useEffect(() => {
     // Only fetch agencies if SUPER_ADMIN
-    if (user?.role === UserRole.SUPER_ADMIN) {
+    if (user?.role === "SUPER_ADMIN") {
       fetchAgencies();
     }
 
@@ -150,7 +150,7 @@ const PropertyForm = () => {
               placeholder="e.g., CAD-2024-001"
             />
 
-            {user?.role === UserRole.SUPER_ADMIN && (
+            {user?.role === "SUPER_ADMIN" && (
               <div>
                 <label className="block text-sm font-medium text-primary mb-2">
                   Agency <span className="text-danger-600">*</span>
@@ -178,7 +178,7 @@ const PropertyForm = () => {
               </div>
             )}
 
-            {isEdit && user?.role === UserRole.SUPER_ADMIN && (
+            {isEdit && user?.role === "SUPER_ADMIN" && (
               <div className="bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 text-warning-800 dark:text-warning-200 px-4 py-3 rounded-lg flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <div>
@@ -192,7 +192,7 @@ const PropertyForm = () => {
               </div>
             )}
 
-            {user?.role === UserRole.AGENCY_ADMIN && user.agency && (
+            {user?.role === "AGENCY_ADMIN" && user.agency && (
               <div className="bg-info-50 dark:bg-info-900/20 border border-info-200 dark:border-info-800 text-info-800 dark:text-info-200 px-4 py-3 rounded-lg">
                 <p className="text-sm">
                   This property will be registered under:{" "}

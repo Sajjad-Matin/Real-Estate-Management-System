@@ -7,9 +7,9 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
 import { transactionsApi } from '../../api/transactions';
-import {  VerificationStatus, TradeType, type Transaction } from '../../types';
+import { type VerificationStatus, type TradeType, type Transaction } from '../../types';
 import { CheckCircle, XCircle, Clock, AlertCircle, ChevronRight, Filter } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 const VerificationQueue = () => {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ const VerificationQueue = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [verifyStatus, setVerifyStatus] = useState<VerificationStatus>(VerificationStatus.APPROVED);
+  const [verifyStatus, setVerifyStatus] = useState<VerificationStatus>("APPROVED" as VerificationStatus);
   const [remarks, setRemarks] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [sortBy, setSortBy] = useState<'oldest' | 'newest' | 'price'>('oldest');
@@ -30,7 +30,7 @@ const VerificationQueue = () => {
     try {
       setLoading(true);
       const response = await transactionsApi.getAll({
-        status: VerificationStatus.PENDING,
+        status: "PENDING" as VerificationStatus,
         limit: 50,
         sortBy: sortBy === 'price' ? 'price' : 'createdAt',
         sortOrder: sortBy === 'oldest' ? 'asc' : 'desc',
@@ -100,11 +100,11 @@ const VerificationQueue = () => {
   const getTradeTypeIcon = (type: TradeType) => {
     const baseClasses = "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold";
     switch (type) {
-      case TradeType.SALE:
+      case "SALE" as TradeType:
         return <div className={`${baseClasses} bg-success-600`}>S</div>;
-      case TradeType.RENT:
+      case "RENT" as TradeType:
         return <div className={`${baseClasses} bg-primary-600`}>R</div>;
-      case TradeType.TRANSFER:
+      case "TRANSFER" as TradeType:
         return <div className={`${baseClasses} bg-warning-600`}>T</div>;
     }
   };
@@ -308,7 +308,7 @@ const VerificationQueue = () => {
                             variant="danger"
                             onClick={(e) => {
                               e.stopPropagation();
-                              openVerifyModal(transaction, VerificationStatus.REJECTED);
+                              openVerifyModal(transaction, "REJECTED" as VerificationStatus);
                             }}
                             className="text-sm"
                           >
@@ -319,7 +319,7 @@ const VerificationQueue = () => {
                             variant="success"
                             onClick={(e) => {
                               e.stopPropagation();
-                              openVerifyModal(transaction, VerificationStatus.APPROVED);
+                              openVerifyModal(transaction, "APPROVED" as VerificationStatus);
                             }}
                             className="text-sm"
                           >
@@ -356,7 +356,7 @@ const VerificationQueue = () => {
           setSelectedTransaction(null);
           setRemarks('');
         }}
-        title={verifyStatus === VerificationStatus.APPROVED ? 'Approve Transaction' : 'Reject Transaction'}
+        title={verifyStatus === "APPROVED" as VerificationStatus ? 'Approve Transaction' : 'Reject Transaction'}
       >
         {selectedTransaction && (
           <div className="space-y-4">
@@ -393,33 +393,33 @@ const VerificationQueue = () => {
             </div>
 
             <p className="text-secondary">
-              {verifyStatus === VerificationStatus.APPROVED
+              {verifyStatus === "APPROVED" as VerificationStatus
                 ? 'Are you sure you want to approve this transaction? This will mark it as verified and complete.'
                 : 'Are you sure you want to reject this transaction? Please provide a reason below.'}
             </p>
 
             <Input
-              label={verifyStatus === VerificationStatus.REJECTED ? 'Rejection Reason (Required)' : 'Remarks (Optional)'}
+              label={verifyStatus === "REJECTED" as VerificationStatus ? 'Rejection Reason (Required)' : 'Remarks (Optional)'}
               type="text"
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder={
-                verifyStatus === VerificationStatus.REJECTED
+                verifyStatus === "REJECTED" as VerificationStatus
                   ? 'e.g., Invalid documentation, missing signatures...'
                   : 'Add any notes...'
               }
-              required={verifyStatus === VerificationStatus.REJECTED}
+              required={verifyStatus === "REJECTED" as VerificationStatus}  
             />
 
             <div className="flex gap-3">
               <Button
-                variant={verifyStatus === VerificationStatus.APPROVED ? 'success' : 'danger'}
+                variant={verifyStatus === "APPROVED" as VerificationStatus ? 'success' : 'danger'}
                 onClick={handleVerify}
                 isLoading={actionLoading}
-                disabled={verifyStatus === VerificationStatus.REJECTED && !remarks.trim()}
+                disabled={verifyStatus === "REJECTED" as VerificationStatus && !remarks.trim()}
                 className="flex-1"
               >
-                {verifyStatus === VerificationStatus.APPROVED ? (
+                {verifyStatus === "APPROVED" as VerificationStatus ? (
                   <>
                     <CheckCircle className="w-4 h-4" />
                     Approve Transaction

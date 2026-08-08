@@ -18,10 +18,10 @@ import {
   type SearchTransactionsParams,
 } from "../../api/transactions";
 import {
-  VerificationStatus,
-  TradeType,
-  UserRole,
+  type VerificationStatus,
+  type TradeType,
   type Transaction,
+  type UserRole,
 } from "../../types";
 import { Plus, Search, FileText } from "lucide-react";
 import { format } from "date-fns";
@@ -59,7 +59,7 @@ const TransactionsList = () => {
   }, [search, statusFilter, tradeTypeFilter, minPrice, maxPrice, currentPage]);
 
   const canCreate =
-    user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.AGENCY_ADMIN;
+    user?.role === "SUPER_ADMIN" as UserRole || user?.role === "AGENCY_ADMIN" as UserRole;
 
   const fetchTransactions = async () => {
     try {
@@ -88,11 +88,11 @@ const TransactionsList = () => {
 
   const getStatusBadge = (status: VerificationStatus) => {
     switch (status) {
-      case VerificationStatus.APPROVED:
+      case "APPROVED" as VerificationStatus:
         return <Badge variant="success">Approved</Badge>;
-      case VerificationStatus.PENDING:
+      case "PENDING" as VerificationStatus:
         return <Badge variant="warning">Pending</Badge>;
-      case VerificationStatus.REJECTED:
+      case "REJECTED" as VerificationStatus:
         return <Badge variant="danger">Rejected</Badge>;
       default:
         return <Badge variant="default">{status}</Badge>;
@@ -101,11 +101,11 @@ const TransactionsList = () => {
 
   const getTradeTypeBadge = (type: TradeType) => {
     switch (type) {
-      case TradeType.SALE:
+      case "SALE" as TradeType:
         return <Badge variant="success">Sale</Badge>;
-      case TradeType.RENT:
+      case "RENT" as TradeType:
         return <Badge variant="info">Rent</Badge>;
-      case TradeType.TRANSFER:
+      case "TRANSFER" as TradeType:
         return <Badge variant="warning">Transfer</Badge>;
       default:
         return <Badge variant="default">{type}</Badge>;
@@ -121,13 +121,13 @@ const TransactionsList = () => {
 
   // Count by status
   const pendingCount = transactions.filter(
-    (t) => t.status === VerificationStatus.PENDING,
+    (t) => t.status === "PENDING" as VerificationStatus,
   ).length;
   const approvedCount = transactions.filter(
-    (t) => t.status === VerificationStatus.APPROVED,
+    (t) => t.status === "APPROVED" as VerificationStatus,
   ).length;
   const rejectedCount = transactions.filter(
-    (t) => t.status === VerificationStatus.REJECTED,
+    (t) => t.status === "REJECTED" as VerificationStatus,
   ).length;
 
   const handleExport = (exportFormat: "csv" | "excel") => {
@@ -179,7 +179,7 @@ const TransactionsList = () => {
 
             <Card
               className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setStatusFilter(VerificationStatus.PENDING)}
+              onClick={() => setStatusFilter("PENDING" as VerificationStatus)}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -196,7 +196,7 @@ const TransactionsList = () => {
 
             <Card
               className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setStatusFilter(VerificationStatus.APPROVED)}
+              onClick={() => setStatusFilter("APPROVED" as VerificationStatus)}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -213,7 +213,7 @@ const TransactionsList = () => {
 
             <Card
               className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setStatusFilter(VerificationStatus.REJECTED)}
+              onClick={() => setStatusFilter("REJECTED" as VerificationStatus)}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -254,9 +254,9 @@ const TransactionsList = () => {
                   className="px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="">All Status</option>
-                  <option value={VerificationStatus.PENDING}>Pending</option>
-                  <option value={VerificationStatus.APPROVED}>Approved</option>
-                  <option value={VerificationStatus.REJECTED}>Rejected</option>
+                  <option value={"PENDING" as VerificationStatus}>Pending</option>
+                  <option value={"APPROVED" as VerificationStatus}>Approved</option>
+                  <option value={"REJECTED" as VerificationStatus}>Rejected</option>
                 </select>
 
                 <select
@@ -267,9 +267,9 @@ const TransactionsList = () => {
                   className="px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="">All Types</option>
-                  <option value={TradeType.SALE}>Sale</option>
-                  <option value={TradeType.RENT}>Rent</option>
-                  <option value={TradeType.TRANSFER}>Transfer</option>
+                  <option value={"SALE" as TradeType}>Sale</option>
+                  <option value={"RENT" as TradeType}>Rent</option>
+                  <option value={"TRANSFER" as TradeType}>Transfer</option>
                 </select>
 
                 <div className="flex items-center gap-2">

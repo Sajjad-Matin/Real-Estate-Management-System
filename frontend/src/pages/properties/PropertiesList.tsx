@@ -19,7 +19,7 @@ import {
 import { Plus, Search, Home } from "lucide-react";
 import { format } from "date-fns";
 import { useAuthStore } from "../../stores/authStore";
-import { UserRole, type Property } from "../../types";
+import { type Property } from "../../types";
 import ExportModal from "../../components/common/ExportModal";
 import { exportToCSV, exportToExcel } from "../../utils/export";
 
@@ -40,7 +40,7 @@ const PropertiesList = () => {
   }, [search, regionFilter, currentPage]);
 
   const canCreate =
-    user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.AGENCY_ADMIN;
+    user?.role === "SUPER_ADMIN" || user?.role === "AGENCY_ADMIN";
 
   const fetchProperties = async () => {
     try {

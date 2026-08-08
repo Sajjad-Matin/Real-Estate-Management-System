@@ -6,7 +6,7 @@ import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { usersApi, type CreateUserData } from "../../api/users";
 import { agenciesApi } from "../../api/agencies";
-import { UserRole, Language, type Agency } from "../../types";
+import { type UserRole, type Language, type Agency } from "../../types";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 
@@ -22,8 +22,8 @@ const UserForm = () => {
     fullName: "",
     email: "",
     password: "",
-    role: UserRole.INSPECTOR,
-    language: Language.EN,
+    role: "INSPECTOR" as UserRole,
+    language: "EN" as Language,
     agencyId: undefined,
     isActive: true,
   });
@@ -87,7 +87,7 @@ const UserForm = () => {
     }
   };
 
-  const requiresAgency = formData.role === UserRole.AGENCY_ADMIN;
+  const requiresAgency = formData.role === "AGENCY_ADMIN" as UserRole;
 
   return (
     <MainLayout title={isEdit ? "Edit User" : "Create User"}>
@@ -163,11 +163,11 @@ const UserForm = () => {
                   className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   required
                 >
-                  {user?.role === UserRole.SUPER_ADMIN && (
-                    <option value={UserRole.SUPER_ADMIN}>Super Admin</option>
+                  {user?.role === "SUPER_ADMIN" as UserRole && (
+                    <option value={"SUPER_ADMIN" as UserRole}>Super Admin</option>
                   )}
-                  <option value={UserRole.AGENCY_ADMIN}>Agency Admin</option>
-                  <option value={UserRole.INSPECTOR}>Inspector</option>
+                  <option value={"AGENCY_ADMIN" as UserRole}>Agency Admin</option>
+                  <option value={"INSPECTOR" as UserRole}>Inspector</option>
                 </select>
               </div>
 
@@ -186,9 +186,9 @@ const UserForm = () => {
                   className="w-full px-3 py-2 border border-primary bg-base text-primary rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   required
                 >
-                  <option value={Language.EN}>English</option>
-                  <option value={Language.FA}>Dari/Farsi</option>
-                  <option value={Language.PS}>Pashto</option>
+                  <option value={"EN" as Language}>English</option>
+                  <option value={"FA" as Language}>Dari/Farsi</option>
+                  <option value={"PS" as Language}>Pashto</option>
                 </select>
               </div>
 

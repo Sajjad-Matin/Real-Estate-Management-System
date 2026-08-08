@@ -5,7 +5,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { propertiesApi } from '../../api/properties';
-import {  UserRole, type Property } from '../../types';
+import { type Property } from '../../types';
 import { ArrowLeft, Edit, Trash2, MapPin, Building2, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../stores/authStore';
@@ -52,13 +52,13 @@ const PropertyDetails = () => {
   };
 
   const canEdit = () => {
-    if (user?.role === UserRole.SUPER_ADMIN) return true;
-    if (user?.role === UserRole.AGENCY_ADMIN && property?.agencyId === user.agencyId) return true;
+    if (user?.role === "SUPER_ADMIN") return true;
+    if (user?.role === "AGENCY_ADMIN" && property?.agencyId === user.agencyId) return true;
     return false;
   };
 
   const canDelete = () => {
-    return user?.role === UserRole.SUPER_ADMIN;
+    return user?.role === "SUPER_ADMIN";
   };
 
   if (loading) {
