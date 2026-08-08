@@ -1,16 +1,30 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import MainLayout from '../../components/layout/MainLayout';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Badge from '../../components/ui/Badge';
-import Modal from '../../components/ui/Modal';
-import Input from '../../components/ui/Input';
-import { transactionsApi } from '../../api/transactions';
-import { type VerificationStatus, type Transaction, type UserRole } from '../../types';
-import { ArrowLeft, Edit, Trash2, CheckCircle, XCircle, MapPin, Building2, FileText, User } from 'lucide-react';
-import { format } from 'date-fns';
-import { useAuthStore } from '../../stores/authStore';
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import MainLayout from "../../components/layout/MainLayout";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
+import Modal from "../../components/ui/Modal";
+import Input from "../../components/ui/Input";
+import { transactionsApi } from "../../api/transactions";
+import {
+  type VerificationStatus,
+  type Transaction,
+  type UserRole,
+} from "../../types";
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  MapPin,
+  Building2,
+  FileText,
+  User,
+} from "lucide-react";
+import { format } from "date-fns";
+import { useAuthStore } from "../../stores/authStore";
 
 const TransactionDetails = () => {
   const navigate = useNavigate();
@@ -20,8 +34,10 @@ const TransactionDetails = () => {
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [verifyStatus, setVerifyStatus] = useState<VerificationStatus>('APPROVED' as VerificationStatus);
-  const [remarks, setRemarks] = useState('');
+  const [verifyStatus, setVerifyStatus] = useState<VerificationStatus>(
+    "APPROVED" as VerificationStatus,
+  );
+  const [remarks, setRemarks] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -36,7 +52,7 @@ const TransactionDetails = () => {
       const data = await transactionsApi.getOne(transactionId);
       setTransaction(data);
     } catch (error) {
-      console.error('Failed to fetch transaction:', error);
+      console.error("Failed to fetch transaction:", error);
     } finally {
       setLoading(false);
     }
@@ -47,9 +63,9 @@ const TransactionDetails = () => {
     try {
       setActionLoading(true);
       await transactionsApi.delete(id);
-      navigate('/transactions');
+      navigate("/transactions");
     } catch (error) {
-      console.error('Failed to delete transaction:', error);
+      console.error("Failed to delete transaction:", error);
     } finally {
       setActionLoading(false);
       setShowDeleteModal(false);
@@ -67,26 +83,33 @@ const TransactionDetails = () => {
       setShowVerifyModal(false);
       fetchTransaction(id);
     } catch (error) {
-      console.error('Failed to verify transaction:', error);
+      console.error("Failed to verify transaction:", error);
     } finally {
       setActionLoading(false);
-      setRemarks('');
+      setRemarks("");
     }
   };
 
   const canEdit = () => {
-    if (transaction?.status !== "PENDING" as VerificationStatus) return false;
-    if (user?.role === "SUPER_ADMIN" as UserRole) return true;
-    if (user?.role === "AGENCY_ADMIN" as UserRole && transaction?.agencyId === user.agencyId) return true;
+    if (transaction?.status !== ("PENDING" as VerificationStatus)) return false;
+    if (user?.role === ("SUPER_ADMIN" as UserRole)) return true;
+    if (
+      user?.role === ("AGENCY_ADMIN" as UserRole) &&
+      transaction?.agencyId === user.agencyId
+    )
+      return true;
     return false;
   };
-  
+
   const canDelete = () => {
-    return user?.role === "SUPER_ADMIN" as UserRole;
+    return user?.role === ("SUPER_ADMIN" as UserRole);
   };
 
   const canVerify = () => {
-    return user?.role === "INSPECTOR" as UserRole && transaction?.status === "PENDING" as VerificationStatus;
+    return (
+      user?.role === ("INSPECTOR" as UserRole) &&
+      transaction?.status === ("PENDING" as VerificationStatus)
+    );
   };
 
   const getStatusBadge = (status: VerificationStatus) => {
@@ -101,9 +124,9 @@ const TransactionDetails = () => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(price);
   };
 
@@ -125,7 +148,9 @@ const TransactionDetails = () => {
       <MainLayout title="Transaction Not Found">
         <div className="p-6">
           <Card>
-            <p className="text-center text-secondary py-12">Transaction not found</p>
+            <p className="text-center text-secondary py-12">
+              Transaction not found
+            </p>
           </Card>
         </div>
       </MainLayout>
@@ -136,7 +161,7 @@ const TransactionDetails = () => {
     <MainLayout title={`Transaction #${transaction.id.slice(0, 8)}`}>
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <Button variant="secondary" onClick={() => navigate('/transactions')}>
+          <Button variant="secondary" onClick={() => navigate("/transactions")}>
             <ArrowLeft className="w-4 h-4" />
             Back to Transactions
           </Button>
@@ -178,10 +203,7 @@ const TransactionDetails = () => {
             )}
 
             {canDelete() && (
-              <Button
-                variant="danger"
-                onClick={() => setShowDeleteModal(true)}
-              >
+              <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
                 <Trash2 className="w-4 h-4" />
                 Delete
               </Button>
@@ -193,7 +215,9 @@ const TransactionDetails = () => {
           {/* Main Info */}
           <Card className="lg:col-span-2">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-primary">Transaction Details</h3>
+              <h3 className="text-lg font-semibold text-primary">
+                Transaction Details
+              </h3>
               {getStatusBadge(transaction.status)}
             </div>
 
@@ -205,9 +229,15 @@ const TransactionDetails = () => {
                   Property Information
                 </h4>
                 <div className="space-y-2">
-                  <p className="text-primary font-medium">{transaction.property?.title}</p>
-                  <p className="text-sm text-secondary">{transaction.property?.address}</p>
-                  <p className="text-sm text-secondary">Region: {transaction.property?.region}</p>
+                  <p className="text-primary font-medium">
+                    {transaction.property?.title}
+                  </p>
+                  <p className="text-sm text-secondary">
+                    {transaction.property?.address}
+                  </p>
+                  <p className="text-sm text-secondary">
+                    Region: {transaction.property?.region}
+                  </p>
                   {transaction.property?.cadastralNo && (
                     <p className="text-sm text-secondary font-mono">
                       Cadastral: {transaction.property.cadastralNo}
@@ -225,11 +255,15 @@ const TransactionDetails = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-secondary">Trade Type</label>
-                    <p className="text-primary font-medium capitalize">{transaction.tradeType.toLowerCase()}</p>
+                    <p className="text-primary font-medium capitalize">
+                      {transaction.tradeType.toLowerCase()}
+                    </p>
                   </div>
                   <div>
                     <label className="text-xs text-secondary">Price</label>
-                    <p className="text-primary font-bold text-lg">{formatPrice(transaction.price)}</p>
+                    <p className="text-primary font-bold text-lg">
+                      {formatPrice(transaction.price)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -242,17 +276,29 @@ const TransactionDetails = () => {
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="text-xs text-secondary uppercase tracking-wider">Buyer</label>
-                    <p className="text-primary font-medium mt-1">{transaction.buyerName}</p>
+                    <label className="text-xs text-secondary uppercase tracking-wider">
+                      Buyer
+                    </label>
+                    <p className="text-primary font-medium mt-1">
+                      {transaction.buyerName}
+                    </p>
                     {transaction.buyerIdNo && (
-                      <p className="text-sm text-secondary font-mono mt-1">ID: {transaction.buyerIdNo}</p>
+                      <p className="text-sm text-secondary font-mono mt-1">
+                        ID: {transaction.buyerIdNo}
+                      </p>
                     )}
                   </div>
                   <div>
-                    <label className="text-xs text-secondary uppercase tracking-wider">Seller</label>
-                    <p className="text-primary font-medium mt-1">{transaction.sellerName}</p>
+                    <label className="text-xs text-secondary uppercase tracking-wider">
+                      Seller
+                    </label>
+                    <p className="text-primary font-medium mt-1">
+                      {transaction.sellerName}
+                    </p>
                     {transaction.sellerIdNo && (
-                      <p className="text-sm text-secondary font-mono mt-1">ID: {transaction.sellerIdNo}</p>
+                      <p className="text-sm text-secondary font-mono mt-1">
+                        ID: {transaction.sellerIdNo}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -264,7 +310,9 @@ const TransactionDetails = () => {
                   <Building2 className="w-4 h-4" />
                   Agency Information
                 </h4>
-                <p className="text-primary font-medium">{transaction.agency?.name || 'N/A'}</p>
+                <p className="text-primary font-medium">
+                  {transaction.agency?.name || "N/A"}
+                </p>
                 {transaction.agency?.licenseNumber && (
                   <p className="text-sm text-secondary font-mono mt-1">
                     License: {transaction.agency.licenseNumber}
@@ -273,38 +321,59 @@ const TransactionDetails = () => {
               </div>
 
               {/* Verification History */}
-              {transaction.verifications && transaction.verifications.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-secondary mb-3">Verification History</h4>
-                  <div className="space-y-3">
-                    {transaction.verifications.map((verification) => (
-                      <div key={verification.id} className="bg-elevated p-4 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          {getStatusBadge(verification.status)}
-                          <span className="text-xs text-tertiary">
-                            {format(new Date(verification.createdAt), 'MMM d, yyyy h:mm a')}
-                          </span>
+              {transaction.verifications &&
+                transaction.verifications.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-secondary mb-3">
+                      Verification History
+                    </h4>
+                    <div className="space-y-3">
+                      {transaction.verifications.map((verification) => (
+                        <div
+                          key={verification.id}
+                          className="bg-elevated p-4 rounded-lg"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            {getStatusBadge(verification.status)}
+                            <span className="text-xs text-tertiary">
+                              {format(
+                                new Date(verification.createdAt),
+                                "MMM d, yyyy h:mm a",
+                              )}
+                            </span>
+                          </div>
+                          {verification.remarks && (
+                            <p className="text-sm text-secondary mt-2">
+                              {verification.remarks}
+                            </p>
+                          )}
                         </div>
-                        {verification.remarks && (
-                          <p className="text-sm text-secondary mt-2">{verification.remarks}</p>
-                        )}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               <div className="grid grid-cols-2 gap-4 pt-4">
                 <div>
-                  <label className="text-sm font-medium text-secondary">Created</label>
+                  <label className="text-sm font-medium text-secondary">
+                    Created
+                  </label>
                   <p className="text-primary mt-1">
-                    {format(new Date(transaction.createdAt), 'MMM d, yyyy h:mm a')}
+                    {format(
+                      new Date(transaction.createdAt),
+                      "MMM d, yyyy h:mm a",
+                    )}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-secondary">Last Updated</label>
+                  <label className="text-sm font-medium text-secondary">
+                    Last Updated
+                  </label>
                   <p className="text-primary mt-1">
-                    {format(new Date(transaction.updatedAt), 'MMM d, yyyy h:mm a')}
+                    {format(
+                      new Date(transaction.updatedAt),
+                      "MMM d, yyyy h:mm a",
+                    )}
                   </p>
                 </div>
               </div>
@@ -314,17 +383,27 @@ const TransactionDetails = () => {
           {/* Quick Stats */}
           <div className="space-y-6">
             <Card>
-              <h4 className="text-sm font-medium text-secondary mb-2">Transaction ID</h4>
-              <p className="text-lg font-mono font-bold text-primary">#{transaction.id.slice(0, 8)}</p>
+              <h4 className="text-sm font-medium text-secondary mb-2">
+                Transaction ID
+              </h4>
+              <p className="text-lg font-mono font-bold text-primary">
+                #{transaction.id.slice(0, 8)}
+              </p>
             </Card>
 
             <Card>
-              <h4 className="text-sm font-medium text-secondary mb-2">Transaction Value</h4>
-              <p className="text-2xl font-bold text-primary">{formatPrice(transaction.price)}</p>
+              <h4 className="text-sm font-medium text-secondary mb-2">
+                Transaction Value
+              </h4>
+              <p className="text-2xl font-bold text-primary">
+                {formatPrice(transaction.price)}
+              </p>
             </Card>
 
             <Card>
-              <h4 className="text-sm font-medium text-secondary mb-2">Current Status</h4>
+              <h4 className="text-sm font-medium text-secondary mb-2">
+                Current Status
+              </h4>
               <div className="mt-2">{getStatusBadge(transaction.status)}</div>
             </Card>
           </div>
@@ -339,7 +418,8 @@ const TransactionDetails = () => {
       >
         <div className="space-y-4">
           <p className="text-secondary">
-            Are you sure you want to delete this transaction? This action cannot be undone.
+            Are you sure you want to delete this transaction? This action cannot
+            be undone.
           </p>
           <div className="flex gap-3">
             <Button
@@ -365,13 +445,17 @@ const TransactionDetails = () => {
       <Modal
         isOpen={showVerifyModal}
         onClose={() => setShowVerifyModal(false)}
-        title={verifyStatus === "APPORVED" as VerificationStatus ? 'Approve Transaction' : 'Reject Transaction'}
+        title={
+          verifyStatus === ("APPORVED" as VerificationStatus)
+            ? "Approve Transaction"
+            : "Reject Transaction"
+        }
       >
         <div className="space-y-4">
           <p className="text-secondary">
-            {verifyStatus === "APPROVED" as VerificationStatus
-              ? 'Are you sure you want to approve this transaction?'
-              : 'Are you sure you want to reject this transaction?'}
+            {verifyStatus === ("APPROVED" as VerificationStatus)
+              ? "Are you sure you want to approve this transaction?"
+              : "Are you sure you want to reject this transaction?"}
           </p>
 
           <Input
@@ -384,12 +468,18 @@ const TransactionDetails = () => {
 
           <div className="flex gap-3">
             <Button
-              variant={verifyStatus === "APPROVED" as VerificationStatus ? 'success' : 'danger'}
+              variant={
+                verifyStatus === ("APPROVED" as VerificationStatus)
+                  ? "success"
+                  : "danger"
+              }
               onClick={handleVerify}
               isLoading={actionLoading}
               className="flex-1"
             >
-              {verifyStatus === "APPROVED" as VerificationStatus ? 'Approve' : 'Reject'}
+              {verifyStatus === ("APPROVED" as VerificationStatus)
+                ? "Approve"
+                : "Reject"}
             </Button>
             <Button
               variant="secondary"

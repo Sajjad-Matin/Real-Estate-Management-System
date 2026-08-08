@@ -1,37 +1,38 @@
 export const USER_ROLE = {
-  SUPER_ADMIN: 'SUPER_ADMIN',
-  AGENCY_ADMIN: 'AGENCY_ADMIN',
-  INSPECTOR: 'INSPECTOR',
+  SUPER_ADMIN: "SUPER_ADMIN",
+  AGENCY_ADMIN: "AGENCY_ADMIN",
+  INSPECTOR: "INSPECTOR",
 } as const;
-export type UserRole = typeof USER_ROLE[keyof typeof USER_ROLE];
+export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE];
 
 export const AGENCY_STATUS = {
-  ACTIVE: 'ACTIVE',
-  CLOSED: 'CLOSED',
-  BANNED: 'BANNED',
+  ACTIVE: "ACTIVE",
+  CLOSED: "CLOSED",
+  BANNED: "BANNED",
 } as const;
-export type AgencyStatus = typeof AGENCY_STATUS[keyof typeof AGENCY_STATUS];
+export type AgencyStatus = (typeof AGENCY_STATUS)[keyof typeof AGENCY_STATUS];
 
 export const VERIFICATION_STATUS = {
-  PENDING: 'PENDING',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED',
+  PENDING: "PENDING",
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED",
 } as const;
-export type VerificationStatus = typeof VERIFICATION_STATUS[keyof typeof VERIFICATION_STATUS];
+export type VerificationStatus =
+  (typeof VERIFICATION_STATUS)[keyof typeof VERIFICATION_STATUS];
 
 export const TRADE_TYPE = {
-  SALE: 'SALE',
-  RENT: 'RENT',
-  TRANSFER: 'TRANSFER',
+  SALE: "SALE",
+  RENT: "RENT",
+  TRANSFER: "TRANSFER",
 } as const;
-export type TradeType = typeof TRADE_TYPE[keyof typeof TRADE_TYPE];
+export type TradeType = (typeof TRADE_TYPE)[keyof typeof TRADE_TYPE];
 
 export const LANGUAGE = {
-  EN: 'EN',
-  FA: 'FA',
-  PS: 'PS',
+  EN: "EN",
+  FA: "FA",
+  PS: "PS",
 } as const;
-export type Language = typeof LANGUAGE[keyof typeof LANGUAGE];
+export type Language = (typeof LANGUAGE)[keyof typeof LANGUAGE];
 
 export interface User {
   id: string;
