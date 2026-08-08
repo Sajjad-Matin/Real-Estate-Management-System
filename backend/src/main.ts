@@ -15,7 +15,7 @@ async function bootstrap() {
   );
   app.setGlobalPrefix('api');
   app.enableCors({
-  origin: ['http://localhost:5173', 'https://real-estate-management-system-wt9t.vercel.app'],
+  origin: ['http://localhost:5173', 'https://real-estate-management-system-ivory.vercel.app'],
   methods: 'GET,POST,PUT,DELETE',
   allowedHeaders: 'Content-Type, Authorization',
   credentials: true,
